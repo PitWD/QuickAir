@@ -22,67 +22,54 @@ static byte ezoAct = 0;
 static byte ezoCnt = 0;
 
 #define ezoRTD 0
-#define ezoEC 1
-#define ezoPH 2
-#define ezoORP 3
-#define ezoDiO2 4
-#define ezoLVL 5
+#define ezoHUM 1    // TMP & DEW, too !
+#define ezoCO2 2
+#define ezoO2 3
 
 const char ezoStrType_0[] PROGMEM = "RTD";
-const char ezoStrType_1[] PROGMEM = "EC";
-const char ezoStrType_2[] PROGMEM = "pH";
-const char ezoStrType_3[] PROGMEM = "ORP";
-const char ezoStrType_4[] PROGMEM = "D.O.";
-const char ezoStrType_5[] PROGMEM = "LVL";
+const char ezoStrType_1[] PROGMEM = "HUM";
+const char ezoStrType_2[] PROGMEM = "CO2";
+const char ezoStrType_3[] PROGMEM = "O2";
 PGM_P const ezoStrType[] PROGMEM = {
     ezoStrType_0,
     ezoStrType_1,
     ezoStrType_2,
-    ezoStrType_3,
-    ezoStrType_4,
-    ezoStrType_5
+    ezoStrType_3
 };
 
 const char ezoStrLongType_0[] PROGMEM = "Temp.";
-// EC
-// pH
-const char ezoStrLongType_3[] PROGMEM = "Redox";
-const char ezoStrLongType_4[] PROGMEM = "O2";
-const char ezoStrLongType_5[] PROGMEM = "Level";
+const char ezoStrLongType_1[] PROGMEM = "Humidity";
+// CO2
+const char ezoStrLongType_3[] PROGMEM = "Oxygen";
 PGM_P const ezoStrLongType[] PROGMEM = {
     ezoStrLongType_0,
-    ezoStrType_1,
+    ezoStrLongType_1,
     ezoStrType_2,
-    ezoStrLongType_3,
-    ezoStrLongType_4,
-    ezoStrLongType_5
+    ezoStrLongType_3
 };
 
 const char ezoStrUnit_0[] PROGMEM = "°C";
-const char ezoStrUnit_1[] PROGMEM = "µS";
-// "pH";
-const char ezoStrUnit_3[] PROGMEM = "mV";
-const char ezoStrUnit_4[] PROGMEM = "%";
+const char ezoStrUnit_1[] PROGMEM = "rH%";
+const char ezoStrUnit_2[] PROGMEM = "ppm";
+const char ezoStrUnit_3[] PROGMEM = "%";
 PGM_P const ezoStrUnit[] PROGMEM = {
     ezoStrUnit_0,
     ezoStrUnit_1,
     ezoStrType_2,
     ezoStrUnit_3,
-    ezoStrUnit_4,
-    ezoStrUnit_4
 };
 
 // Waittime for readings...
-const int ezoWait[] PROGMEM = {600, 600, 900, 900, 600, 0};
+const int ezoWait[] PROGMEM = {600, 900, 900, 900}; // !! check the 900s !!
 
 // Count of vals of probe
-const byte ezoValCnt[] PROGMEM = {1, 1, 1, 1, 2, 1};
+const byte ezoValCnt[] PROGMEM = {1, 3, 2, 1};
 
 // if type has a calibration
-const byte ezoHasCal[] PROGMEM = {1, 1, 1, 1, 1, 0};
+const byte ezoHasCal[] PROGMEM = {1, 1, 0, 1};
 
 typedef struct ezoProbeSTRUCT{
-    // 22 Byte * 10(+1) Probes Max = 242 Byte
+    // 22 Byte * ??? Probes Max = ??? Byte
     byte type;
     byte calibrated;
     //byte error;            // 0=OK, 1=processing, 2=syntax, 3=IIC, unknown
@@ -96,17 +83,17 @@ ezoProbeSTRUCT ezoProbe[EZO_MAX_PROBES];
 int32_t ezoValue[EZO_MAX_PROBES][EZO_MAX_VALUES];
 
 struct settingSTRUCT{
-    // 197 Byte * 3 Modes = 591 Byte
-    uint16_t DelayTime[6];
-    uint16_t TimeTooLow[8];
-    uint16_t TimeLow[8];
-    uint16_t TimeHigh[4];
-    uint16_t TimeTooHigh[4];
-    int32_t FailSaveValue[6];
-    int32_t ValueTooLow[6];
-    int32_t ValueLow[6];
-    int32_t ValueHigh[6];
-    int32_t ValueTooHigh[6];
+    // 178 Byte * 3 Modes = 534 Byte
+    uint16_t DelayTime[5];      // Exhaust / Intake / Circulation / Humidity / CO2
+    uint16_t TimeTooLow[5][2];  // 
+    uint16_t TimeLow[5][2];
+    uint16_t TimeHigh[5][2];
+    uint16_t TimeTooHigh[5][2];
+    int32_t FailSaveValue[5];   // Temp / Hum / CO2 / DEW / O2
+    int32_t ValueTooLow[3][2];  // Temp / Hum / CO2
+    int32_t ValueLow[3][2];
+    int32_t ValueHigh[3][2];
+    int32_t ValueTooHigh[3][2];
     char Name[17];
 }setting;
 
@@ -118,21 +105,19 @@ struct manualSTRUCT{
 }manual;
 
 // Counter for Low/High
-uint32_t tooLowSince[8];
-uint32_t lowSince[8];
-uint32_t okSince[8];
-uint32_t highSince[8];
-uint32_t tooHighSince[8];
+uint32_t tooLowSince[3];
+uint32_t lowSince[3];
+uint32_t okSince[3];
+uint32_t highSince[3];
+uint32_t tooHighSince[3];
 // Time of last action 
-uint32_t lastAction[8];
+uint32_t lastAction[5];
 
 long avgVal[6]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define avg_RTD avgVal[0]
-#define avg_EC avgVal[1]
-#define avg_pH avgVal[2]
-#define avg_ORP avgVal[3]
-#define avg_O2 avgVal[4]
-#define avg_LVL avgVal[5]
+#define avg_HUM avgVal[1]
+#define avg_CO2 avgVal[2]
+#define avg_O2 avgVal[3]
 
 
 #define CAL_RTD_RES -1         // Value for Reset
@@ -140,25 +125,6 @@ long avgVal[6]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define CAL_RTD_MID 21000      // Value for MidPoint
 #define CAL_RTD_HIGH 100000    // Value for HighPoint
 
-#define CAL_EC_RES 0
-#define CAL_EC_LOW 84000 
-#define CAL_EC_MID 1413000
-#define CAL_EC_HIGH 1413000
-
-#define CAL_PH_RES -1
-#define CAL_PH_LOW 4000
-#define CAL_PH_MID 7000
-#define CAL_PH_HIGH 10000
-
-#define CAL_ORP_RES -1
-#define CAL_ORP_LOW -1 
-#define CAL_ORP_MID 225000
-#define CAL_ORP_HIGH -1
-
-#define CAL_DiO2_RES 0
-#define CAL_DiO2_LOW 0 
-#define CAL_DiO2_MID 0
-#define CAL_DiO2_HIGH 0
 
 void DefaultProbesToRom(){
     // Save actual probe-constellation as Standard to Eeprom
@@ -189,7 +155,7 @@ void ManualTimesFromRom(int set){
 }
 
 void OffOutPorts(){
-    for (byte i = 2; i < 14; i++){
+    for (byte i = 2; i < 18; i++){
         digitalWrite(i, LOW);
     }
 }

@@ -304,13 +304,6 @@ void EzoReset(byte ezo, byte all){
     }   
 }
 
-int32_t CompensateEC(int32_t EC, int32_t temp) {
-    return EC + ((EC / 45) * (temp - 25000) / 1000);
-}
-int32_t CompensatePH(int32_t pH, int32_t temp) {
-    return pH - ((pH / 588) * (temp - 25000) / 1000);
-}
-
 void EzoSetCalTemp(byte ezo, byte all){
     
     for (byte i = 0; i < ezoCnt; i++){
@@ -499,31 +492,7 @@ int8_t EzoDoNext(){
     switch (ezoAction){
     case 0:
       // Set Avg-RTD to EC & pH probes
-      IntToFloatStr(avg_RTD,2,2,'0');
-      strcpy(&iicStr[2], strHLP);
-      iicStr[0] = 'T'; iicStr[1] = ',';
-
-      if (ezoProbe[ezoAct].type == ezoPH || ezoProbe[ezoAct].type == ezoEC){
-        errCnt = 0;
-        err = -1;
-        while (err < 0){
-          err = IIcSetStr(ezoProbe[ezoAct].address, iicStr, 0);
-          if (err < 0){
-            errCnt++;
-            if (errCnt > 3){
-              // Fatal for this Probe
-              errInfo[1] = 'T';
-              errCnt = ezoAct;
-              break;
-            }
-            delay(333);
-          }
-          else{
-              // errCnt = ezoAct;
-          }          
-        }
-      }
-
+      // This case doesn't exist in QuickAir...
       break;
     
     case 1:
@@ -577,29 +546,6 @@ int8_t EzoDoNext(){
         ezoAction = 0;
         if (ezoAct == ezoCnt){
             // All Modules Done
-            
-
-            // Analyze internal Level-Ports
-                // tooLow
-                ezoAct = 0;     // temporary use for comparison 
-                ezoValue[ezoCnt][0] = 0;
-            
-            for (size_t i = 0; i < 4; i++){
-                if (!digitalRead(i + 14)){
-                    // Low -> tooHigh
-                    ezoAct += 25;
-                    ezoValue[ezoCnt][0] = (i + 1) * 25;
-                }
-            }
-                       
-            if (ezoValue[ezoCnt][0] != ezoAct){
-                // One or some level-switches are wrong/faulty
-                ezoValue[ezoCnt][0] = 66666;
-            }     
-            else{
-                ezoValue[ezoCnt][0] *= 1000;
-            }
-            
             ezoAct = 0;
             return 1;
         }
@@ -717,25 +663,19 @@ void EzoScan(){
                            }
                            
                             break;
+                        case 'C':
+                            // CO2
+                            recEzo = ezoCO2;
+                            hasCal = 0;
+                            break;
                         case 'O':
-                            // ORP
-                            recEzo = ezoORP;
+                            // O2
+                            recEzo = ezoO2;
                             break;
-                        case 'E':
-                            // EC
-                            recEzo = ezoEC;
-                            //verPos = 6;
-                            break;           
-                        case 'p':
-                            // pH
-                            recEzo = ezoPH;
-                            //verPos = 6;
-                            break;
-                        case 'D':
-                            // dissolved oxygen
-                            recEzo = ezoDiO2;
-                            //verPos = 8;
-                            break;
+                        case 'H':
+                            // HUM + Temp + Dew
+                            recEzo = ezoHUM;
+                            break;    
                         default:
                             // LATE ERROR or not supported...
                             break;
@@ -772,31 +712,6 @@ void EzoScan(){
                             Serial.print(F("Status: "));
                             delay(300);
                             if (IIcGetAtlas(i) > 0){
-                                /*
-                                switch (iicStr[8]){
-                                case 'P':
-                                    // powered off
-                                    Serial.print(F("PwrOff"));
-                                    break;
-                                case 'S':
-                                    // software reset
-                                    Serial.print(F("RST"));
-                                    break;
-                                case 'B':
-                                    // brown out
-                                    Serial.print(F("BOut"));
-                                    break;
-                                case 'W':
-                                    // watchdog
-                                    Serial.print(F("WatchD"));
-                                    break;
-                                case 'U':
-                                    // Unknown
-                                default:
-                                    Serial.print(F("N/A"));
-                                    break;
-                                }
-                                */
                                 Serial.print(iicStr[8]);
                                 PrintCharInSpaces('@');
                                 Serial.print(&iicStr[10]);
@@ -811,14 +726,11 @@ void EzoScan(){
                             EzoStartValues(ezoCnt);
                             EzoWaitValues(ezoCnt);
                             if (EzoGetValues(ezoCnt)){
-                                Serial.println(ezoValue[ezoCnt][0]);
-                                /*
                                 for (byte i2 = 1; i2 < Fb(ezoValCnt[recEzo]); i2++){
                                     PrintCharInSpaces(',');
                                     Serial.print(ezoProbe[ezoCnt].value[i2]);
                                 }          
                                 Serial.println(F(""));
-                                */
                             }
                             else{
                                 Serial.println(F("ERR"));
@@ -840,13 +752,228 @@ void EzoScan(){
         }
     }
 
-    // Add internal 4-step level
-    ezoValue[ezoCnt][0] = 66666;
-    ezoProbe[ezoCnt].address = 0;
-    strcpy_P(ezoProbe[ezoCnt].name, (PGM_P)F("Int. Level - 1"));
-    ezoProbe[ezoCnt].type = ezoLVL;
-    ezoProbe[ezoCnt].calibrated = 0;
-    ezoCnt++;
-
 }
 
+/*
+void EzoScan(){
+    // Scan for Ezo's
+
+    int err;
+    int recEzo;         // recognized EzoProbe[ezoCnt].module.version
+    int verPos;         // 'pointer' on 1st char of version
+    int hasCal;         // has a calibration
+    
+    ezoCnt = 0;
+    Serial.println("");
+
+    for (int i = EZO_1st_ADDRESS; i < EZO_LAST_ADDRESS + 1 && ezoCnt < EZO_MAX_PROBES; i++){
+        
+        //Exclude known stuff
+        if (!(i > 79 && i < 88) && !(i == 104)){        
+
+            Wire.beginTransmission(i);
+            err = Wire.endTransmission();
+            if (!err){
+                Serial.print(F("Slave @: "));
+                Serial.print(i);
+                Serial.print(F(" : "));
+                // Slave found... looking for EZO-ID
+                err = IIcSetStr(i, (char*)"i", 0);
+                Serial.print(err);
+                Serial.print(F(" : "));
+                delay(333);
+                err = IIcGetAtlas(i);
+                Serial.print(err);
+                Serial.print(F(" : "));
+                switch (err){
+                case 0:
+                    // nothing received
+                    break;
+                case -1:
+                case -2:
+                case -4:
+                    // ezo errors
+                    break;
+                case -3:
+                    // IIC error
+                    break;
+                default:
+                    // something received
+                    Serial.print(iicStr);
+                    Serial.print(F(" : "));
+                    if (iicStr[0] == '?' && iicStr[1] == 'I'){
+                        // It's an ezo...
+
+                        recEzo = 0;
+                        verPos = 7;
+                        hasCal = 1;
+                        ezoProbe[ezoCnt].calibrated = 0;
+                        ezoProbe[ezoCnt].name[0] = 0;
+
+                        switch (iicStr[3]){
+                        case 'R':
+                            // RGB or RTD
+                            switch (iicStr[4]){
+                            case 'G':
+                                // RGB
+                                recEzo = ezoRGB;
+                                hasCal = 0;
+                                break;
+                            case 'T':
+                                // RTD
+                                recEzo = ezoRTD;
+                                break;
+                            default:
+                                // LATE ERROR
+                                break;
+                            }
+                            break;
+                        case 'F':
+                            // FLO(W)
+                            recEzo = ezoFLOW;
+                            hasCal = 0;
+                            break;
+                        case 'O':
+                            // ORP
+                            recEzo = ezoORP;
+                            break;
+                        case 'C':
+                            // CO2
+                            recEzo = ezoCO2;
+                            hasCal = 0;
+                            break;
+                        case 'H':
+                            // HUM
+                            recEzo = ezoHUM;
+                            hasCal = 0;
+                            break;    
+                        case 'E':
+                            // EC
+                            recEzo = ezoEC;
+                            verPos = 6;
+                            break;           
+                        case 'p':
+                            // pH
+                            recEzo = ezoPH;
+                            verPos = 6;
+                            break;
+                        case 'D':
+                            // dissolved oxygen
+                            recEzo = ezoDiO2;
+                            verPos = 8;
+                            break;
+                        case 'P':
+                            // Embedded Pressure
+                            recEzo = ezoPRES;
+                            break;
+                        default:
+                            // LATE ERROR
+                            break;
+                        }
+                        Serial.println(recEzo);
+                        if (recEzo){
+                            // Valid Probe found
+                            
+                            // Save address and type
+                            ezoProbe[ezoCnt].address = i;
+                            ezoProbe[ezoCnt].type = recEzo;
+                            
+                            // Extract Version
+                            ezoProbe[ezoCnt].version = StrTokFloatToInt(iicStr);
+                            // Calibration
+                            if (hasCal){
+                                IIcSetStr(i,(char*)"Cal,?", 0);
+                                delay(333);
+                                if (IIcGetAtlas(i) > 0){
+                                    ezoProbe[ezoCnt].calibrated = iicStr[5] - 48;
+                                }                            
+                            }
+                            
+                            // Name
+                            IIcSetStr(i,(char*)"Name,?", 0);
+                            delay(333);
+                            if (IIcGetAtlas(i) > 0){
+                                strcpy(ezoProbe[ezoCnt].name, &iicStr[6]);
+                            }
+
+                            // Output (in RAM)
+                            Serial.print(F("Found: "));
+                            //strcpy_P(strHLP,(PGM_P)pgm_read_word(&(ezoStrType[recEzo])));
+                            Serial.print(Fa(ezoStrType[recEzo]));
+                            Serial.print(F(" @: "));
+                            Serial.println(i);
+
+                            Serial.print(F("         Name: "));
+                            Serial.print((char*)ezoProbe[ezoCnt].name);
+                            Serial.println(F(""));
+                            Serial.print(F("      Version: "));
+                            Serial.println(ezoProbe[ezoCnt].version);
+
+                            Serial.print(F("  Calibration: "));
+                            Serial.println(ezoProbe[ezoCnt].calibrated);
+
+                            // Output (in Module)
+                            // Status
+                            IIcSetStr(i, (char*)"Status", 0);
+                            Serial.print(F("        State: "));
+                            delay(300);
+                            if (IIcGetAtlas(i) > 0){
+                                switch (iicStr[8]){
+                                case 'P':
+                                    // powered off
+                                    Serial.print(F("'powered off'"));
+                                    break;
+                                case 'S':
+                                    // software reset
+                                    Serial.print(F("'software reset'"));
+                                    break;
+                                case 'B':
+                                    // brown out
+                                    Serial.print(F("'brown out'"));
+                                    break;
+                                case 'W':
+                                    // watchdog
+                                    Serial.print(F("'watchdog'"));
+                                    break;
+                                case 'U':
+                                    // Unknown
+                                default:
+                                    Serial.print(F("'unknown'"));
+                                    break;
+                                }             
+                                Serial.print(F(" @ "));
+                                Serial.print(&iicStr[10]);
+                                Serial.println(F(" Volt"));
+                            }
+                            else{
+                                Serial.println(F("ERROR"));
+                            }
+                            
+                            // Value(s)
+                            Serial.print(F("     Value(s): "));
+                            EzoStartValues(ezoCnt);
+                            EzoWaitValues(ezoCnt);
+                            if (EzoGetValues(ezoCnt)){
+                                Serial.print(ezoProbe[ezoCnt].value[0]);
+                                for (byte i2 = 1; i2 < Fb(ezoValCnt[recEzo]); i2++){
+                                    Serial.print(F(" , "));
+                                    Serial.print(ezoProbe[ezoCnt].value[i2]);
+                                }          
+                                Serial.println(F(""));
+                            }
+                            else{
+                                Serial.println(F("ERROR"));
+                            }
+                            Serial.println(F(""));
+                            
+                            // done
+                            ezoCnt++;
+                        }
+                    } 
+                    break;
+                }
+            }
+        }
+    }   
+}
+*/

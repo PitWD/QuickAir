@@ -6,8 +6,6 @@
 #define EZO_1st_ADDRESS 32
 #define EZO_LAST_ADDRESS 127
 
-#define INTERNAL_LEVEL_CNT 1    // cnt of internal level sensors
-
 #define TRIPLE_EC 1             // If we have three EC-Low actions
 
 // What is the actual Action
@@ -258,7 +256,7 @@ void EzoSetName(char *strIN, byte ezo, byte all, byte autoName){
     byte len = 0;
 
 
-    for (int i = 0; i < ezoCnt - INTERNAL_LEVEL_CNT; i++){
+    for (int i = 0; i < ezoCnt; i++){
 
         if (EzoCheckOnSet(ezo,all, i)){
 
@@ -298,7 +296,7 @@ void EzoReset(byte ezo, byte all){
     byte cntSetup;           // count of setup-lines to send
     char strSetup[6][9];
 
-    for (int i = 0; i < ezoCnt - INTERNAL_LEVEL_CNT; i++){
+    for (int i = 0; i < ezoCnt; i++){
 
         if (EzoCheckOnSet(ezo,all, i)){
         
@@ -349,7 +347,7 @@ int32_t CompensatePH(int32_t pH, int32_t temp) {
 
 void EzoSetCalTemp(byte ezo, byte all){
     
-    for (byte i = 0; i < ezoCnt - INTERNAL_LEVEL_CNT; i++){
+    for (byte i = 0; i < ezoCnt; i++){
         if (EzoCheckOnSet(ezo, all, i)){
             IIcSetStr(ezoProbe[i].address, (char*)"T,25", 0);
         }
@@ -404,7 +402,7 @@ void EzoSetCal(char *strCmd, byte ezo, byte all, int32_t value, byte calAction){
         }
     }
     
-    for (byte i = 0; i < ezoCnt - INTERNAL_LEVEL_CNT; i++){
+    for (byte i = 0; i < ezoCnt; i++){
         if (EzoCheckOnSet(ezo,all, i)){
             if (Fb(ezoHasCal[ezoProbe[ezo].type])){
                 // Has set-able calibration
@@ -416,7 +414,7 @@ void EzoSetCal(char *strCmd, byte ezo, byte all, int32_t value, byte calAction){
 }
 
 void EzoSetAddress(byte ezo, byte addrNew, byte all){
-    for (int i = 0; i < ezoCnt - INTERNAL_LEVEL_CNT; i++){
+    for (int i = 0; i < ezoCnt; i++){
         if (addrNew > 79 && addrNew < 88){
             // Exclude Eprom-Addresses
             addrNew = 88;
@@ -441,7 +439,7 @@ int32_t GetRtdAvgForCal(){
     long avgTemp = 0;
     byte avgCnt = 0;
 
-    for (byte i = 0; i < ezoCnt - INTERNAL_LEVEL_CNT; i++){
+    for (byte i = 0; i < ezoCnt; i++){
         if (ezoProbe[i].type == ezoRTD){
             // RTD
             avgCnt++;
@@ -494,7 +492,7 @@ int32_t PrintValsForCal(byte ezo, byte all, int32_t refValue){
     //}   // else no need on temp
 
     // Read Vals of all to calibrate probes
-    for (byte i = 0; i < ezoCnt - INTERNAL_LEVEL_CNT; i++){
+    for (byte i = 0; i < ezoCnt; i++){
         if (EzoCheckOnSet(ezo, all, i)){
             EzoStartValues(i);
             EzoWaitValues(i);
@@ -611,29 +609,29 @@ int8_t EzoDoNext(){
         // Actions done for this Module
         ezoAct++;
         ezoAction = 0;
-        if (ezoAct == ezoCnt - INTERNAL_LEVEL_CNT){
+        if (ezoAct == ezoCnt){
             // All Modules Done
             
 
             // Analyze internal Level-Ports
                 // tooLow
                 ezoAct = 0;     // temporary use for comparison 
-                ezoValue[ezoCnt - INTERNAL_LEVEL_CNT][0] = 0;
+                ezoValue[ezoCnt][0] = 0;
             
             for (size_t i = 0; i < 4; i++){
                 if (!digitalRead(i + 14)){
                     // Low -> tooHigh
                     ezoAct += 25;
-                    ezoValue[ezoCnt - INTERNAL_LEVEL_CNT][0] = (i + 1) * 25;
+                    ezoValue[ezoCnt][0] = (i + 1) * 25;
                 }
             }
                        
-            if (ezoValue[ezoCnt - INTERNAL_LEVEL_CNT][0] != ezoAct){
+            if (ezoValue[ezoCnt][0] != ezoAct){
                 // One or some level-switches are wrong/faulty
-                ezoValue[ezoCnt - INTERNAL_LEVEL_CNT][0] = 66666;
+                ezoValue[ezoCnt][0] = 66666;
             }     
             else{
-                ezoValue[ezoCnt - INTERNAL_LEVEL_CNT][0] *= 1000;
+                ezoValue[ezoCnt][0] *= 1000;
             }
             
             ezoAct = 0;
@@ -669,7 +667,7 @@ void EzoScan(){
     ezoCnt = 0;
     Serial.println();
 
-    for (byte i = EZO_1st_ADDRESS; i < EZO_LAST_ADDRESS + 1 && ezoCnt < EZO_MAX_PROBES - INTERNAL_LEVEL_CNT; i++){
+    for (byte i = EZO_1st_ADDRESS; i < EZO_LAST_ADDRESS + 1 && ezoCnt < EZO_MAX_PROBES; i++){
         
         // Exclude known stuff (eeprom & rtc)
         if (!(i > 79 && i < 88) && !(i == 104)){        

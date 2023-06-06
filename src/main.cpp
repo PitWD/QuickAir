@@ -63,7 +63,7 @@ void setup() {
     avgVal[i] = setting.FailSaveValue[i];
   }    
 // EMERGENCY-BOOT: EzoScan(); my.Default = 0;
-  if (my.Default == 1 && my.Cnt && my.Cnt <= EZO_MAX_PROBES - INTERNAL_LEVEL_CNT){ 
+  if (my.Default == 1 && my.Cnt && my.Cnt <= EZO_MAX_PROBES){ 
     DefaultProbesFromRom();
     ezoCnt = my.Cnt;
     for (byte i = 0; i < ezoCnt; i++){

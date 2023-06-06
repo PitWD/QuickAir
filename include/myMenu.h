@@ -3,7 +3,7 @@
 
 #include "quicklib.h"
 #include <EEPROM.h>
-#include "myWater.h"
+#include "myAir.h"
 
 // my Eeprom - Variables (Def. in quicklib.h)
 mySTRUCT my;
@@ -36,7 +36,7 @@ void myFromRom(){
     my.Temporary = 0;
     my.Default = 0;
   }
-  if (my.Cnt > EZO_MAX_PROBES - INTERNAL_LEVEL_CNT){
+  if (my.Cnt > EZO_MAX_PROBES){
     my.Cnt = 0;
     my.Default = 0;
   }
@@ -1585,7 +1585,7 @@ Start:
 
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('q', ezoCnt - INTERNAL_LEVEL_CNT);
+  pos = GetUserKey('q', ezoCnt);
   switch (pos){
   case -1:
     // TimeOut

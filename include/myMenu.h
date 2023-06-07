@@ -744,6 +744,7 @@ Start:
 
   int8_t pos = PrintMenuTop((char*)"- Set Values -") + 1;
   byte i = 0;
+  byte j = 0;
   
   EscLocate(12, pos++);
   PrintFlexSpacer(0, 1);
@@ -753,22 +754,54 @@ Start:
 
   PrintLine(pos++, 3, 76);
   EscLocate(3, pos++);
-  for (i = 0; i < 6; i++){
+  
+  for (i = 0; i < 3; i++){
+    
+    j = i * 2 // Day
+
     EscBold(1);
-    PrintCentered(Fa(ezoStrLongType[i]), 9);
+    PrintCentered(Fa(ezoStrType[i]), 5);
+    EscBold(0);
+    Serial.print(F(" Day"));
     PrintSpacer(0);
 
-    PrintValuesMenuHlp('a', i, setting.FailSaveValue[i]);
+    PrintValuesMenuHlp('a', j, setting.FailSaveValue[j][0]);
 
-    PrintValuesMenuHlp('g', i, setting.ValueTooLow[i]);
+    PrintValuesMenuHlp('g', j, setting.ValueTooLow[j][0]);
 
-    PrintValuesMenuHlp('m', i, setting.ValueLow[i]);
+    PrintValuesMenuHlp('m', j, setting.ValueLow[j][0]);
 
-    PrintValuesMenuHlp('s', i, setting.ValueHigh[i]);
+    PrintValuesMenuHlp('s', j, setting.ValueHigh[j][0]);
 
-    PrintValuesMenuHlp('A', i, setting.ValueTooHigh[i]);
+    PrintValuesMenuHlp('A', j, setting.ValueTooHigh[j][0]);
 
     EscLocate(3, pos++);
+
+    j++;  // Night
+
+    EscBold(1);
+    PrintCentered(Fa(ezoStrType[i]), 4);
+    EscBold(0);
+    Serial.print(F(" Night"));
+    PrintSpacer(0);
+
+    PrintValuesMenuHlp('a', j, setting.FailSaveValue[j][1]);
+
+    PrintValuesMenuHlp('g', j, setting.ValueTooLow[j][1]);
+
+    PrintValuesMenuHlp('m', j, setting.ValueLow[j][1]);
+
+    PrintValuesMenuHlp('s', j, setting.ValueHigh[j][1]);
+
+    PrintValuesMenuHlp('A', j, setting.ValueTooHigh[j][1]);
+
+    if (i < 2){
+      pos++;
+      PrintLine(pos, 13, 66);
+    }
+
+    EscLocate(3, pos++);
+
   }
 
   pos = PrintCopySettingTo(pos);
@@ -783,23 +816,38 @@ Start:
   
   else if (IsKeyBetween(pos, 'a', 'f')){
     // FailSave
-    pos = PrintValuesMenuChangeVal(&setting.FailSaveValue[pos - 'a']);
+    pos -= 'a';
+    i = pos / 2;
+    j = pos % 2;
+    pos = PrintValuesMenuChangeVal(&setting.FailSaveValue[i][j]);
   }
   else if (IsKeyBetween(pos, 'g', 'l')){
     // tooLow
-    pos = PrintValuesMenuChangeVal(&setting.ValueTooLow[pos - 'g']);
+    pos -= 'g';
+    i = pos / 2;
+    j = pos % 2;
+    pos = PrintValuesMenuChangeVal(&setting.ValueTooLow[i][j]);
   }
   else if (IsKeyBetween(pos, 'm', 'r')){
     // Low
-    pos = PrintValuesMenuChangeVal(&setting.ValueLow[pos - 'm']);
+    pos -= 'm';
+    i = pos / 2;
+    j = pos % 2;
+    pos = PrintValuesMenuChangeVal(&setting.ValueLow[i][j]);
   }
   else if (IsKeyBetween(pos, 's', 'x')){
     // High
-    pos = PrintValuesMenuChangeVal(&setting.ValueHigh[pos - 's']);
+    pos -= 's';
+    i = pos / 2;
+    j = pos % 2;
+    pos = PrintValuesMenuChangeVal(&setting.ValueHigh[i][j]);
   }
   else if (IsKeyBetween(pos, 'A', 'F')){
     // tooHigh
-    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - 'A']);
+    pos -= 'A';
+    i = pos / 2;
+    j = pos % 2;
+    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[i][j]);
   }
   else if (IsKeyBetween(pos, '1', '3')){
     SettingsToRom(pos - '1'); 

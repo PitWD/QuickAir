@@ -98,10 +98,10 @@ struct settingSTRUCT{
 
 struct manualSTRUCT{
     // 41 Byte * 4 Sets = 164 Byte
-    byte StepperVAl[3];         // Exhaust / Intake / Circulation
+    byte StepperVal[3];         // Exhaust / Intake / Circulation
     uint16_t StepperTime[3];
-    uint16_t Low[3];            // Heat / Humidify / Add(CO2)
-    uint16_t High[3];           // Cool / Dry / Heat(on wet)
+    uint16_t LowPort[3];            // Heat / Humidify / Add(CO2)
+    uint16_t HighPort[3];           // Cool / Dry / Heat(on wet)
     char Name[17];
 }manual;
 

@@ -83,13 +83,12 @@ ezoProbeSTRUCT ezoProbe[EZO_MAX_PROBES];
 int32_t ezoValue[EZO_MAX_PROBES][EZO_MAX_VALUES];
 
 struct settingSTRUCT{
-    // 178 Byte * 3 Modes = 534 Byte
-    uint16_t DelayTime[5];      // Exhaust / Intake / Circulation / Humidity / CO2
-    uint16_t TimeTooLow[5][2];  // 
-    uint16_t TimeLow[5][2];
-    uint16_t TimeHigh[5][2];
-    uint16_t TimeTooHigh[5][2];
-    int32_t FailSaveValue[5];   // Temp / Hum / CO2 / DEW / O2
+    uint16_t DelayTime[6];      // Exhaust / Intake / Circulation / Humidity / CO2 / Heat(on Wet)
+    uint16_t TimeTooLow[6][2];  // 
+    uint16_t TimeLow[6][2];
+    uint16_t TimeHigh[6][2];
+    uint16_t TimeTooHigh[6][2];
+    int32_t FailSaveValue[5];   // Temp / Hum / CO2 / O2 / DEW
     int32_t ValueTooLow[3][2];  // Temp / Hum / CO2
     int32_t ValueLow[3][2];
     int32_t ValueHigh[3][2];
@@ -99,8 +98,10 @@ struct settingSTRUCT{
 
 struct manualSTRUCT{
     // 41 Byte * 4 Sets = 164 Byte
-    uint16_t Low[8];    // Three EC-Low-Ports !!
-    uint16_t High[4];   // No Redox-High-, no O2-High-Ports
+    byte StepperVAl[3];         // Exhaust / Intake / Circulation
+    uint16_t StepperTime[3];
+    uint16_t Low[3];            // Heat / Humidify / Add(CO2)
+    uint16_t High[3];           // Cool / Dry / Heat(on wet)
     char Name[17];
 }manual;
 
@@ -113,11 +114,12 @@ uint32_t tooHighSince[3];
 // Time of last action 
 uint32_t lastAction[5];
 
-long avgVal[6]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
+long avgVal[5]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define avg_RTD avgVal[0]
 #define avg_HUM avgVal[1]
 #define avg_CO2 avgVal[2]
 #define avg_O2 avgVal[3]
+#define avg_DEW avgVal[4]
 
 
 #define CAL_RTD_RES -1         // Value for Reset

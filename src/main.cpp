@@ -49,16 +49,11 @@ void setup() {
 
   // OutPorts
   for (byte i = 2; i < 18; i++){
-    if (i < 14){
-      pinMode(i, OUTPUT);
-      digitalWrite(i, LOW);
-    }
-    else{
-      pinMode(i, INPUT_PULLUP);    // Level tooLow, low, high, tooHigh
-    }
+    pinMode(i, OUTPUT);
+    digitalWrite(i, LOW);
   }
 
-  for (byte i = 0; i < 6; i++){
+  for (byte i = 0; i < 5; i++){
     // Set Fail-Save Values to avg_s
     avgVal[i] = setting.FailSaveValue[i];
   }    

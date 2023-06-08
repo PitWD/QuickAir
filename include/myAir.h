@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 
 #define EZO_MAX_PROBES 11
-#define EZO_MAX_VALUES 1        // 3 for full HUM / 5 for full RGB...
+#define EZO_MAX_VALUES 3        // 3 for full HUM / 5 for full RGB...
 #define EZO_1st_ADDRESS 32
 #define EZO_LAST_ADDRESS 127
 
@@ -29,7 +29,7 @@ static byte ezoCnt = 0;
 const char ezoStrType_0[] PROGMEM = "RTD";
 const char ezoStrType_1[] PROGMEM = "HUM";
 const char ezoStrType_2[] PROGMEM = "CO2";
-const char ezoStrType_3[] PROGMEM = "O2";
+const char ezoStrType_3[] PROGMEM = "DEW";
 PGM_P const ezoStrType[] PROGMEM = {
     ezoStrType_0,
     ezoStrType_1,
@@ -37,6 +37,7 @@ PGM_P const ezoStrType[] PROGMEM = {
     ezoStrType_3
 };
 
+/*
 const char ezoStrLongType_0[] PROGMEM = "Temp.";
 const char ezoStrLongType_1[] PROGMEM = "Humidity";
 // CO2
@@ -47,20 +48,20 @@ PGM_P const ezoStrLongType[] PROGMEM = {
     ezoStrType_2,
     ezoStrLongType_3
 };
+*/
 
 const char ezoStrUnit_0[] PROGMEM = "°C";
 const char ezoStrUnit_1[] PROGMEM = "rH%";
 const char ezoStrUnit_2[] PROGMEM = "ppm";
-const char ezoStrUnit_3[] PROGMEM = "%";
 PGM_P const ezoStrUnit[] PROGMEM = {
     ezoStrUnit_0,
     ezoStrUnit_1,
     ezoStrType_2,
-    ezoStrUnit_3,
+    ezoStrUnit_0,
 };
 
 // Waittime for readings...
-const int ezoWait[] PROGMEM = {600, 900, 900, 900}; // !! check the 900s !!
+const int ezoWait[] PROGMEM = {600, 900, 900}; // !! check the 900s !!
 
 // Count of vals of probe
 const byte ezoValCnt[] PROGMEM = {1, 3, 2, 1};
@@ -83,16 +84,16 @@ ezoProbeSTRUCT ezoProbe[EZO_MAX_PROBES];
 int32_t ezoValue[EZO_MAX_PROBES][EZO_MAX_VALUES];
 
 struct settingSTRUCT{
-    uint16_t DelayTime[6];      // Exhaust / Intake / Circulation / Humidity / CO2 / Heat(on Wet)
-    uint16_t TimeTooLow[6][2];  // 
-    uint16_t TimeLow[6][2];
-    uint16_t TimeHigh[6][2];
-    uint16_t TimeTooHigh[6][2];
-    int32_t FailSaveValue[5];   // Temp / Hum / CO2 / O2 / DEW
-    int32_t ValueTooLow[3][2];  // Temp / Hum / CO2
-    int32_t ValueLow[3][2];
-    int32_t ValueHigh[3][2];
-    int32_t ValueTooHigh[3][2];
+    uint16_t DelayTime[7];      // Exhaust / Intake / Circulation / Humidity / CO2 / Dew (heat on Wet)
+    uint16_t TimeTooLow[7];     // 
+    uint16_t TimeLow[7];
+    uint16_t TimeHigh[5];
+    uint16_t TimeTooHigh[5];
+    int32_t FailSaveValue[4];   // Temp / Hum / CO2 / DEW / 
+    int32_t ValueTooLow[4];     // Temp / Hum / CO2 / Dew
+    int32_t ValueLow[4];
+    int32_t ValueHigh[3];
+    int32_t ValueTooHigh[3];
     char Name[17];
 }setting;
 
@@ -100,8 +101,8 @@ struct manualSTRUCT{
     // 41 Byte * 4 Sets = 164 Byte
     byte StepperVal[3];         // Exhaust / Intake / Circulation
     uint16_t StepperTime[3];
-    uint16_t LowPort[3];            // Heat / Humidify / Add(CO2)
-    uint16_t HighPort[3];           // Cool / Dry / Heat(on wet)
+    uint16_t LowPort[4];            // Heat / Humidify / Add(CO2) / Heat(DEW)
+    uint16_t HighPort[2];           // Cool / Dry 
     char Name[17];
 }manual;
 

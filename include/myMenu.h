@@ -740,11 +740,40 @@ byte IsKeyBetween(char key, char start, char stop){
 
 void PrintValuesMenu(){
 
+//             |  FailSafe  |   tooLow   |    Low     |    High    |  tooHigh   |
+//-------------------------------------------------------------------------------
+//     RTD     | a)         | e)         | i)         | m)         | p)         |
+//-------------------------------------------------------------------------------
+//     HUM     | b)         | f)         | j)         | n)         | q)         |
+//-------------------------------------------------------------------------------
+//     CO2     | c)         | g)         | k)         | o)         | r)         |
+//-------------------------------------------------------------------------------
+//     DEW     | d)         | h)         | l)         |
+
+
+//          | DelayTimes |   tooLow   |    Low     |    High    |  tooHigh   |
+//----------------------------------------------------------------------------
+//   RTD    | a)         | h)         | o)         | v)         | A)         |
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//  Exhaust | b)         | i)         | p)         | w)         | B)         |
+//  Intake  | c)         | j)         | q)         | x)         | C)         |
+//  Circ.   | d)         | k)         | r)         | y)         | D)         |
+//----------------------------------------------------------------------------
+//   HUM    | e)         | l)         | s)         | z)         | E)         |
+//----------------------------------------------------------------------------
+//   CO2    | f)         | m)         | t)         | 
+//--------------------------------------------------
+//   DEW    | g)         | n)         | u)         | 
+
+
+//   Offset   |   OnTime   |  OffTime   |
+//---------------------------------------
+//  a)        | b)         | c)         |
+
 Start:
 
   int8_t pos = PrintMenuTop((char*)"- Set Values -") + 1;
   byte i = 0;
-  byte j = 0;
   
   EscLocate(12, pos++);
   PrintFlexSpacer(0, 1);
@@ -755,51 +784,24 @@ Start:
   PrintLine(pos++, 3, 76);
   EscLocate(3, pos++);
   
-  for (i = 0; i < 3; i++){
+  for (i = 0; i < 4; i++){
     
-    j = i * 2 // Day
-
     EscBold(1);
-    PrintCentered(Fa(ezoStrType[i]), 5);
-    EscBold(0);
-    Serial.print(F(" Day"));
+    PrintCentered(Fa(ezoStrType[i]), 9);
     PrintSpacer(0);
 
-    PrintValuesMenuHlp('a', j, setting.FailSaveValue[j][0]);
+    PrintValuesMenuHlp('a', i, setting.FailSaveValue[i]);
 
-    PrintValuesMenuHlp('g', j, setting.ValueTooLow[j][0]);
+    PrintValuesMenuHlp('e', i, setting.ValueTooLow[i]);
 
-    PrintValuesMenuHlp('m', j, setting.ValueLow[j][0]);
+    PrintValuesMenuHlp('i', i, setting.ValueLow[i]);
 
-    PrintValuesMenuHlp('s', j, setting.ValueHigh[j][0]);
-
-    PrintValuesMenuHlp('A', j, setting.ValueTooHigh[j][0]);
-
-    EscLocate(3, pos++);
-
-    j++;  // Night
-
-    EscBold(1);
-    PrintCentered(Fa(ezoStrType[i]), 4);
-    EscBold(0);
-    Serial.print(F(" Night"));
-    PrintSpacer(0);
-
-    PrintValuesMenuHlp('a', j, setting.FailSaveValue[j][1]);
-
-    PrintValuesMenuHlp('g', j, setting.ValueTooLow[j][1]);
-
-    PrintValuesMenuHlp('m', j, setting.ValueLow[j][1]);
-
-    PrintValuesMenuHlp('s', j, setting.ValueHigh[j][1]);
-
-    PrintValuesMenuHlp('A', j, setting.ValueTooHigh[j][1]);
-
-    if (i < 2){
-      pos++;
-      PrintLine(pos, 13, 66);
+    if (i < 3){
+      // DEW has no High / tooHigh
+      PrintValuesMenuHlp('m', i, setting.ValueHigh[i]);
+      PrintValuesMenuHlp('p', i, setting.ValueTooHigh[i]);
     }
-
+    
     EscLocate(3, pos++);
 
   }
@@ -808,48 +810,34 @@ Start:
   
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('x', 3);
+  pos = GetUserKey('r', 3);
 
   if (pos < 1){
     // Exit & TimeOut
   }
   
-  else if (IsKeyBetween(pos, 'a', 'f')){
+  else if (IsKeyBetween(pos, 'a', 'd')){
     // FailSave
-    pos -= 'a';
-    i = pos / 2;
-    j = pos % 2;
-    pos = PrintValuesMenuChangeVal(&setting.FailSaveValue[i][j]);
+    pos = PrintValuesMenuChangeVal(&setting.FailSaveValue[pos - 'a']);
   }
-  else if (IsKeyBetween(pos, 'g', 'l')){
+  else if (IsKeyBetween(pos, 'e', 'h')){
     // tooLow
-    pos -= 'g';
-    i = pos / 2;
-    j = pos % 2;
-    pos = PrintValuesMenuChangeVal(&setting.ValueTooLow[i][j]);
+    pos = PrintValuesMenuChangeVal(&setting.ValueTooLow[pos - 'e']);
   }
-  else if (IsKeyBetween(pos, 'm', 'r')){
+  else if (IsKeyBetween(pos, 'i', 'l')){
     // Low
-    pos -= 'm';
-    i = pos / 2;
-    j = pos % 2;
-    pos = PrintValuesMenuChangeVal(&setting.ValueLow[i][j]);
+    pos = PrintValuesMenuChangeVal(&setting.ValueLow[pos - 'i']);
   }
-  else if (IsKeyBetween(pos, 's', 'x')){
+  else if (IsKeyBetween(pos, 'm', 'o')){
     // High
-    pos -= 's';
-    i = pos / 2;
-    j = pos % 2;
-    pos = PrintValuesMenuChangeVal(&setting.ValueHigh[i][j]);
+    pos = PrintValuesMenuChangeVal(&setting.ValueHigh[pos - 'm']);
   }
-  else if (IsKeyBetween(pos, 'A', 'F')){
+  else if (IsKeyBetween(pos, 'p', 'r')){
     // tooHigh
-    pos -= 'A';
-    i = pos / 2;
-    j = pos % 2;
-    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[i][j]);
+    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - 'p'];
   }
-  else if (IsKeyBetween(pos, '1', '3')){
+  else if (IsKeyBetween(pos, '1', '2')){
+    // Copy to Day / Night
     SettingsToRom(pos - '1'); 
     pos = 2;   
   }
@@ -858,7 +846,6 @@ Start:
     SettingsToRom(my.Setting);
   }
   
-
   if (pos > 0){
     goto Start;
   }

@@ -37,22 +37,29 @@ PGM_P const ezoStrType[] PROGMEM = {
     ezoStrType_3
 };
 
-/*
-const char ezoStrLongType_0[] PROGMEM = "Temp.";
-const char ezoStrLongType_1[] PROGMEM = "Humidity";
+
+// RTD
+const char ezoStrTimeType_1[] PROGMEM = "Exhaust";
+const char ezoStrTimeType_2[] PROGMEM = "Intake";
+const char ezoStrTimeType_3[] PROGMEM = "Circ.";
+// Hum
 // CO2
-const char ezoStrLongType_3[] PROGMEM = "Oxygen";
-PGM_P const ezoStrLongType[] PROGMEM = {
-    ezoStrLongType_0,
-    ezoStrLongType_1,
+// DEW
+PGM_P const ezoStrTimeType[] PROGMEM = {
+    ezoStrType_0,
+    ezoStrTimeType_1,
+    ezoStrTimeType_2,
+    ezoStrTimeType_3
+    ezoStrType_1,
     ezoStrType_2,
-    ezoStrLongType_3
+    ezoStrType_3,
 };
-*/
+
 
 const char ezoStrUnit_0[] PROGMEM = "°C";
 const char ezoStrUnit_1[] PROGMEM = "rH%";
 const char ezoStrUnit_2[] PROGMEM = "ppm";
+// C°
 PGM_P const ezoStrUnit[] PROGMEM = {
     ezoStrUnit_0,
     ezoStrUnit_1,
@@ -84,7 +91,7 @@ ezoProbeSTRUCT ezoProbe[EZO_MAX_PROBES];
 int32_t ezoValue[EZO_MAX_PROBES][EZO_MAX_VALUES];
 
 struct settingSTRUCT{
-    uint16_t DelayTime[7];      // Exhaust / Intake / Circulation / Humidity / CO2 / Dew (heat on Wet)
+    uint16_t DelayTime[7];      // Temp / Exhaust / Intake / Circulation / Humidity / CO2 / Dew (heat on Wet)
     uint16_t TimeTooLow[7];     // 
     uint16_t TimeLow[7];
     uint16_t TimeHigh[5];

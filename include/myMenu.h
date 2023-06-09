@@ -751,21 +751,6 @@ void PrintValuesMenu(){
 //     DEW     | d)         | h)         | l)         |
 
 
-//          | DelayTimes |   tooLow   |    Low     |    High    |  tooHigh   |
-//----------------------------------------------------------------------------
-//   RTD    | a)         | h)         | o)         | v)         | A)         |
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//  Exhaust | b)         | i)         | p)         | w)         | B)         |
-//  Intake  | c)         | j)         | q)         | x)         | C)         |
-//  Circ.   | d)         | k)         | r)         | y)         | D)         |
-//----------------------------------------------------------------------------
-//   HUM    | e)         | l)         | s)         | z)         | E)         |
-//----------------------------------------------------------------------------
-//   CO2    | f)         | m)         | t)         | 
-//--------------------------------------------------
-//   DEW    | g)         | n)         | u)         | 
-
-
 //   Offset   |   OnTime   |  OffTime   |
 //---------------------------------------
 //  a)        | b)         | c)         |
@@ -1292,6 +1277,20 @@ void PrintTimingsMenuTime(char key, uint16_t timeIN, byte printSpacer){
 
 void PrintTimingsMenu(){
 
+//          | DelayTimes |   tooLow   |    Low     |    High    |  tooHigh   |
+//----------------------------------------------------------------------------
+//   RTD    | a)         | h)         | o)         | v)         | A)         |
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//  Exhaust | b)         | i)         | p)         | w)         | B)         |
+//  Intake  | c)         | j)         | q)         | x)         | C)         |
+//  Circ.   | d)         | k)         | r)         | y)         | D)         |
+//----------------------------------------------------------------------------
+//   HUM    | e)         | l)         | s)         | z)         | E)         |
+//----------------------------------------------------------------------------
+//   CO2    | f)         | m)         | t)         | 
+//--------------------------------------------------
+//   DEW    | g)         | n)         | u)         | 
+
 Start:
 
   int8_t pos = PrintMenuTop((char*)"- Set Timings -") + 1;
@@ -1315,42 +1314,14 @@ Start:
     EscBold(1);
     PrintCentered(Fa(ezoStrLongType[type]), 9);
     PrintSmallSpacer();
-    
-    //PrintSmallMenuKey('a' + i);
-    if (type == ezoEC && i > ezoEC){
-      // 2nd and 3rd EC
-      PrintSpaces(11);
-    }
-    else{
-      PrintTimingsMenuTime(type + 'a', setting.DelayTime[type], 0);
-    }
+    PrintTimingsMenuTime(type + 'a', setting.DelayTime[type], 0);
     PrintSmallSpacer();
-    
-    PrintTimingsMenuTime(i + 'g', setting.TimeTooLow[i], 1);
+    PrintTimingsMenuTime(i + 'h', setting.TimeTooLow[i], 1);
     PrintTimingsMenuTime(i + 'o', setting.TimeLow[i], 1);
     
-    // 0 & 1 as they are
-    // 2 & 3 NOT
-    // 4 = 2
-    // 5 & 6 NOT
-    // 7 = 3
-    type = i;     // to set TimeHigh & TimeTooHigh index right
-    if (i < 2) {
-    }
-    else if (i == 4) {
-      type = 2;
-    }
-    else if (i == 7) {
-      type = 3;
-    }        
-    else{
-      // 2nd & 3rd EC or Redox / O2
-      type = 0;
-    }
-
-    if (type || (!type && !i)){
+    if (i < 5){
       // Has High Times
-      PrintTimingsMenuTime(type + 'w', setting.TimeHigh[type], 1);
+      PrintTimingsMenuTime(type + 'v', setting.TimeHigh[type], 1);
       PrintTimingsMenuTime(type + 'A', setting.TimeTooHigh[type], 0);
     }
     else{
@@ -1366,32 +1337,32 @@ Start:
 
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('z', 3);
+  pos = GetUserKey('z', 2);
 
   if (pos < 1){
     // Exit & TimeOut
   }
-  else if (IsKeyBetween(pos, 'a', 'f')){
+  else if (IsKeyBetween(pos, 'a', 'g')){
     // FailSave
     pos = GetUserTime16ptr(&setting.DelayTime[pos - 'a']);
   }
-  else if (IsKeyBetween(pos, 'g', 'n')){
+  else if (IsKeyBetween(pos, 'h', 'n')){
     // tooLow
-    pos = GetUserTime16ptr(&setting.TimeTooLow[pos - 'g']);
+    pos = GetUserTime16ptr(&setting.TimeTooLow[pos - 'h']);
   }
-  else if (IsKeyBetween(pos, 'o', 'v')){
+  else if (IsKeyBetween(pos, 'o', 'u')){
     // Low
     pos = GetUserTime16ptr(&setting.TimeLow[pos - 'o']);
   }
-  else if (IsKeyBetween(pos, 'w', 'z')){
+  else if (IsKeyBetween(pos, 'v', 'z')){
     // High
     pos = GetUserTime16ptr(&setting.TimeHigh[pos - 'w']);
   }
-  else if (IsKeyBetween(pos, 'A', 'D')){
+  else if (IsKeyBetween(pos, 'A', 'E')){
     // tooHigh
     pos = GetUserTime16ptr(&setting.TimeTooHigh[pos - 'A']);
   }
-  else if (IsKeyBetween(pos, '1', '3')){
+  else if (IsKeyBetween(pos, '1', '2')){
     SettingsToRom(pos - '1'); 
     pos = 2;   
   }

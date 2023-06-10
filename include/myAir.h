@@ -105,11 +105,21 @@ struct settingSTRUCT{
 }setting;
 
 struct manualSTRUCT{
-    // 41 Byte * 4 Sets = 164 Byte
-    byte StepperVal[3];         // Exhaust / Intake / Circulation
-    uint16_t StepperTime[3];
-    uint16_t LowPort[4];            // Heat / Humidify / Add(CO2) / Heat(DEW)
-    uint16_t HighPort[2];           // Cool / Dry 
+    // m) SomeBlaBlaName     |     Low    |     High   |   Value    |
+    //---------------------------------------------------------------
+    //          RTD          | a)         | h)         |
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //         Exhaust       | b)         |            | i)         |
+    //         Intake        | c)         |            | j)         |
+    //         Circ.         | d)         |            | k)         |
+    //---------------------------------------------------------------
+    //          HUM          | e)         | l)         |
+    //--------------------------------------------------
+    //          CO2          | f)         | 
+    //-------------------------------------
+    //          DEW          | g)         |
+    uint16_t LowPort[7];            // Heat / Exh. / Intake / Circ. / Hum / Add(CO2) / Heat(DEW)
+    uint16_t HighPort[5];           // Cool / Val / Val / Val / Dry 
     char Name[17];
 }manual;
 

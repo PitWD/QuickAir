@@ -1077,10 +1077,23 @@ void RunManualSetting(byte port, byte style){
   OffOutPorts();
 
 }
-void PrintManualMenuHlp1(char key, uint16_t value, byte spacer){
+void PrintManualMenuHlp1(char key, uint16_t value, byte spacer, byte isTime, byte key2){
   PrintMenuKeySmallBoldFaint(key, 0, !value);
-  PrintSerTime(value, 0, 1);
-  PrintMenuKey(key - 32, 1, '(', 0, 0, !value, !value);
+  if (isTime){
+    // Time 00:00:00
+    PrintSerTime(value, 0, 1);
+  }
+  else{
+    /* value */
+    PrintInt(value, 8, ' ');
+  }  
+  if (key2){
+    PrintMenuKey(key - 32, 1, '(', 0, 0, !value, !value);
+  }
+  else{
+    Serial.print(F("   "));
+  }
+    
   PrintSpacer(spacer);
 }
 byte GetUserTime16ptr(uint16_t *valIN){
@@ -1097,6 +1110,20 @@ byte GetUserTime16ptr(uint16_t *valIN){
 
 void PrintManualMenu(){
 
+// m) SomeBlaBlaName     |     Low    |     High   |   Value    |
+//---------------------------------------------------------------
+//          RTD          | a)         | h)         |
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//         Exhaust       | b)         |            | i)         |
+//         Intake        | c)         |            | j)         |
+//         Circ.         | d)         |            | k)         |
+//---------------------------------------------------------------
+//          HUM          | e)         | l)         |
+//--------------------------------------------------
+//          CO2          | f)         | 
+//-------------------------------------
+//          DEW          | g)         |   
+
 Start:
 
   int8_t pos = PrintMenuTop((char*)"- Manual Menu -") + 1;
@@ -1107,64 +1134,32 @@ Start:
   EscColor(fgBlue);
   PrintCentered(manual.Name, 16);
   EscColor(0);
-  Serial.print(F(" |       LOW       |      HIGH       |"));
-  PrintLine(pos++, 5, 58);
+  Serial.print(F(" |       LOW       |      HIGH       |      Value      |"));
+  PrintLine(pos++, 5, 73);
   byte ecCnt = 0;
 
-  for (i = 0; i < 6; i++){
+  for (i = 0; i < 8; i++){
 
-    byte iOffset = 0;
-    RedoEC:
     EscLocate(8, pos++);
     EscBold(1);
     PrintCentered(Fa(ezoStrLongType[i]), 17);
     PrintSpacer(1);
     
-    PrintManualMenuHlp1('a' + i + ecCnt, manual.Low[i + ecCnt], 1);
+    PrintManualMenuHlp1('a' + i + ecCnt, manual.Low[i + ecCnt], 1, 1, 1);
 
-    if (i == ezoEC && ecCnt && ecCnt < 3){
-      // EC - three times...
-      // 2nd & 3rd EC having no high-action ports
-      ecCnt++;
-      PrintFlexSpacer(15,0);
-      if (ecCnt < 3){
-        goto RedoEC;
-      }    
-      ecCnt--;
+    if (i == 0 || i == 4){
+      // RTD & Hum - High Ports (Time)
+      PrintManualMenuHlp1('h' + i, manual.HighPort[i], 1, 1, 1);
     }
-    else{
-      //PrintSmallMenuKey('g' + i);
-      iOffset = i;
-      if (i == ezoORP || i == ezoDiO2){
-        // They do not have high-ports
-        PrintFlexSpacer(15,0);
-      }
-      else{
-        if (i == ezoLVL){
-          iOffset = 3;
-        }
-        
-        // Insane that this is smaller than using PrintManualMenuHlp() a 2nd time
-          PrintMenuKeySmallBoldFaint(iOffset + 'i', 0, !manual.High[iOffset]);
-          PrintSerTime(manual.High[iOffset], 0, 1);
-          PrintMenuKey(iOffset + 'I', 1, '(', 0, 0, !manual.High[iOffset], !manual.High[iOffset]);
-          PrintSpacer(0);
-          // Really insane why this uses more flash...  
-            //PrintManualMenuHlp(iOffset + 'i', manual.High[iOffset], 0); 
-      }
-            
-      //EscLocate(8, pos++);
-
-      if (i == ezoEC){
-        // EC - three times...
-        ecCnt++;
-        goto RedoEC;
-      }
+    else if (i > 0 && i < 4){
+      // Exhaust / Intake / Circulation
+      PrintFlexSpacer(15,0);
+      PrintManualMenuHlp1('h' + i, manual.HighPort[i], 1, 0, 0);
     }
 
   }
-  //pos--;
-  PrintLine(pos++, 5, 58);
+
+  PrintLine(pos++, 5, 73);
   pos++;
   EscLocate(5, pos++);
   
@@ -1172,7 +1167,7 @@ Start:
   
   Serial.print(F(" Edit   "));
   
-  PrintMenuKeyLong((char*)"A-L):");
+  PrintMenuKeyLong((char*)"A-H & L):");
   
   Serial.print(F(" RunSingle   "));
   PrintMenuKeyStd('m');
@@ -1206,23 +1201,28 @@ Start:
   if (pos < 1){
     // Exit & TimeOut
   }
-  else if (IsKeyBetween(pos, 'a', 'h')){
+  else if (IsKeyBetween(pos, 'a', 'g')){
     // LowTime
     pos = GetUserTime16ptr(&manual.Low[pos - 'a']);
   }
-  else if (IsKeyBetween(pos, 'i', 'l')){
-    // HighTime
-    pos = GetUserTime16ptr(&manual.High[pos - '1']);
+  else if (IsKeyBetween(pos, 'i', 'k')){
+    // HighTime (Values)
+    manual.High[pos - 'h'] = GetUserInt(manual.High[pos - 'h'])
+    pos = 1;
   }
-  else if (IsKeyBetween(pos, 'A', 'H')){
+  else if (pos == 'h' || pos = 'l'){
+    // HighTime - Times
+    pos = GetUserTime16ptr(&manual.High[pos - 'h']);
+  }
+  else if (IsKeyBetween(pos, 'A', 'G')){
     // Run Single LowTime
     pos -= 'A';
     RunManualSetting(pos, 1);
     pos = 2;
   }
-  else if (IsKeyBetween(pos, 'I', 'L')){
+  else if (pos == 'H' || pos = 'L')){
     // Run Single HighTime
-    pos = pos - 'I' + 6;
+    pos = pos - 'H' + 6;
     RunManualSetting(pos, 1);
     pos = 2;
   }

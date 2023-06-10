@@ -53,7 +53,7 @@ void setup() {
     digitalWrite(i, LOW);
   }
 
-  for (byte i = 0; i < 5; i++){
+  for (byte i = 0; i < 4; i++){
     // Set Fail-Save Values to avg_s
     avgVal[i] = setting.FailSaveValue[i];
   }    
@@ -64,6 +64,10 @@ void setup() {
     for (byte i = 0; i < ezoCnt; i++){
       // Set Fail-Save Values as Start-Values
       ezoValue[i][0] = setting.FailSaveValue[ezoProbe[i].type];
+      if (ezoProbe[i].type == ezoHUM){
+        ezoValue[i][1] = setting.FailSaveValue[ezoRTD];
+        ezoValue[i][2] = setting.FailSaveValue[ezoDEW];
+      }
     }    
     PrintLoopMenu();
   }

@@ -22,9 +22,9 @@ static byte ezoAct = 0;
 static byte ezoCnt = 0;
 
 #define ezoRTD 0
-#define ezoHUM 1    // TMP & DEW, too !
+#define ezoHUM 1    // Hardware has Temp & DEW, too !
 #define ezoCO2 2
-#define ezoO2 3
+#define ezoDEW 3    // No real Hardware !
 
 const char ezoStrType_0[] PROGMEM = "RTD";
 const char ezoStrType_1[] PROGMEM = "HUM";
@@ -49,7 +49,7 @@ PGM_P const ezoStrTimeType[] PROGMEM = {
     ezoStrType_0,
     ezoStrTimeType_1,
     ezoStrTimeType_2,
-    ezoStrTimeType_3
+    ezoStrTimeType_3,
     ezoStrType_1,
     ezoStrType_2,
     ezoStrType_3,
@@ -124,20 +124,19 @@ struct manualSTRUCT{
 }manual;
 
 // Counter for Low/High
-uint32_t tooLowSince[3];
-uint32_t lowSince[3];
-uint32_t okSince[3];
+uint32_t tooLowSince[4];
+uint32_t lowSince[4];
+uint32_t okSince[4];
 uint32_t highSince[3];
 uint32_t tooHighSince[3];
 // Time of last action 
-uint32_t lastAction[5];
+uint32_t lastAction[7];
 
-long avgVal[5]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
+long avgVal[4]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define avg_RTD avgVal[0]
 #define avg_HUM avgVal[1]
 #define avg_CO2 avgVal[2]
-#define avg_O2 avgVal[3]
-#define avg_DEW avgVal[4]
+#define avg_DEW avgVal[3]
 
 
 #define CAL_RTD_RES -1         // Value for Reset

@@ -659,30 +659,14 @@ void EzoScan(){
                         switch (iicStr[3]){
                         case 'R':
                             // RGB or RTD
-                            /*
-                            switch (iicStr[4]){
-                            case 'T':
-                                // RTD
-                                recEzo = ezoRTD;
-                                break;
-                            default:
-                                // LATE ERROR
-                                break;
-                            }
-                            */
                            if (iicStr[4] == 'T'){
                             recEzo = ezoRTD;
-                           }
-                           
-                            break;
+                           }                           
+                           break;
                         case 'C':
                             // CO2
                             recEzo = ezoCO2;
                             hasCal = 0;
-                            break;
-                        case 'O':
-                            // O2
-                            recEzo = ezoO2;
                             break;
                         case 'H':
                             // HUM + Temp + Dew
@@ -740,7 +724,7 @@ void EzoScan(){
                             if (EzoGetValues(ezoCnt)){
                                 for (byte i2 = 1; i2 < Fb(ezoValCnt[recEzo]); i2++){
                                     PrintCharInSpaces(',');
-                                    Serial.print(ezoProbe[ezoCnt].value[i2]);
+                                    Serial.print(ezoValue[ezoCnt][i2]);
                                 }          
                                 Serial.println(F(""));
                             }

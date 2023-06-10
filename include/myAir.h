@@ -293,22 +293,15 @@ void EzoReset(byte ezo, byte all){
                 strcpy_P(strSetup[1],(PGM_P)F("S,c"));  // Celsius (k = kelvin / f = fahrenheit)
                 cntSetup = 2;
                 break;
-            case ezoEC:
-                strcpy_P(strSetup[1],(PGM_P)F("O,EC,1"));
-                strcpy_P(strSetup[2],(PGM_P)F("O,TDS,0"));
-                strcpy_P(strSetup[3],(PGM_P)F("O,S,0"));
-                strcpy_P(strSetup[4],(PGM_P)F("O,SG,0"));
-                strcpy_P(strSetup[5],(PGM_P)F("K,1.0"));
-                cntSetup = 6;
+            case ezoHUM:
+                strcpy_P(strSetup[1],(PGM_P)F("O,HUM,1"));
+                strcpy_P(strSetup[2],(PGM_P)F("O,T,1"));
+                strcpy_P(strSetup[3],(PGM_P)F("O,Dew,1"));
+                cntSetup = 4;
                 break;
-            case ezoPH:
-                break;
-            case ezoORP:
-                break;
-            case ezoDiO2:
-                strcpy_P(strSetup[1],(PGM_P)F("O,mg,0"));
-                strcpy_P(strSetup[2],(PGM_P)F("O,%,1"));
-                cntSetup = 3;
+            case ezoCO2:
+                strcpy_P(strSetup[1],(PGM_P)F("O,t,0"));
+                cntSetup = 2;
                 break;
             default:
                 break;

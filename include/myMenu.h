@@ -320,7 +320,7 @@ void PrintCalMenu(byte ezo, byte all){
 
   switch (ezoProbe[ezo].type){
   case ezoRTD:
-    /* code */
+    // RTD
     strcpy_P(&iicStr[12], (PGM_P)F("RTD -"));
     if (!ImInside){
       myMenu.b = 0;
@@ -333,25 +333,27 @@ void PrintCalMenu(byte ezo, byte all){
       calAvg = avg_RTD;
     }
     break;
-  case ezoEC:
-    /* code */
-    strcpy_P(&iicStr[12], (PGM_P)F("EC -"));
+  case ezoHUM:
+    // ezoHUM has no calibration on board !
+    strcpy_P(&iicStr[12], (PGM_P)F("HUM -"));
     if (!ImInside){
       myMenu.a = 0;
-      calLow = CAL_EC_LOW;
-      calMid = CAL_EC_MID;
-      calHigh = CAL_EC_HIGH;
-      calAvg = avg_EC;
+      myMenu.b = 0;
+      myMenu.c = 0;
+      myMenu.d = 0;
+      myMenu.e = 0;
+      myMenu.f = 0;
+      myMenu.g = 0;
     }
     break;
-  case ezoPH:
-    /* code */
-    strcpy_P(&iicStr[12], (PGM_P)F("pH -"));
+  case ezoCO2:
+    // CO2
+    strcpy_P(&iicStr[12], (PGM_P)F("CO2 -"));
     if (!ImInside){
       calLow = CAL_PH_LOW;
       calMid = CAL_PH_MID;
       calHigh = CAL_PH_HIGH;
-      calAvg = avg_pH;
+      calAvg = avg_CO2;
     }
     break;
   case ezoORP:

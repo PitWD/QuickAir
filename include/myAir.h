@@ -144,6 +144,11 @@ long avgVal[4]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define CAL_RTD_MID 21000      // Value for MidPoint
 #define CAL_RTD_HIGH 100000    // Value for HighPoint
 
+#define CAL_CO2_RES 0          // Value for Reset
+#define CAL_CO2_LOW 0          // Value for LowPoint
+#define CAL_CO2_MID 3900000    // Value for MidPoint
+#define CAL_CO2_HIGH 0         // Value for HighPoint
+
 
 void DefaultProbesToRom(){
     // Save actual probe-constellation as Standard to Eeprom

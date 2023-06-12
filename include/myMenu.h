@@ -305,13 +305,13 @@ void PrintCalMenu(byte ezo, byte all){
     byte g:1;
   }myMenu;
   
-  myMenu.a = 1;
-  myMenu.b = 1;
-  myMenu.c = 1;
-  myMenu.d = 1;
-  myMenu.e = 1;
-  myMenu.f = 1;
-  myMenu.g = 1;
+  myMenu.a = 0;
+  myMenu.b = 0;
+  myMenu.c = 0;
+  myMenu.d = 0;
+  myMenu.e = 0;
+  myMenu.f = 0;
+  myMenu.g = 0;
 
   Start:
 
@@ -323,10 +323,9 @@ void PrintCalMenu(byte ezo, byte all){
     // RTD
     strcpy_P(&iicStr[12], (PGM_P)F("RTD -"));
     if (!ImInside){
-      myMenu.b = 0;
-      myMenu.c = 0;
-      myMenu.f = 0;
-      myMenu.g = 0;
+      myMenu.a = 1;
+      myMenu.d = 1;
+      myMenu.e = 1;
       calLow = CAL_RTD_LOW;
       calMid = CAL_RTD_MID;
       calHigh = CAL_RTD_HIGH;
@@ -336,55 +335,18 @@ void PrintCalMenu(byte ezo, byte all){
   case ezoHUM:
     // ezoHUM has no calibration on board !
     strcpy_P(&iicStr[12], (PGM_P)F("HUM -"));
-    if (!ImInside){
-      myMenu.a = 0;
-      myMenu.b = 0;
-      myMenu.c = 0;
-      myMenu.d = 0;
-      myMenu.e = 0;
-      myMenu.f = 0;
-      myMenu.g = 0;
-    }
     break;
   case ezoCO2:
     // CO2
     strcpy_P(&iicStr[12], (PGM_P)F("CO2 -"));
     if (!ImInside){
+
       calLow = CAL_PH_LOW;
       calMid = CAL_PH_MID;
       calHigh = CAL_PH_HIGH;
       calAvg = avg_CO2;
     }
     break;
-  case ezoORP:
-    /* code */
-    strcpy_P(&iicStr[12], (PGM_P)F("ORP -"));
-    if (!ImInside){
-      myMenu.b = 0;
-      myMenu.c = 0;
-      myMenu.f = 0;
-      myMenu.g = 0;
-      calLow = CAL_ORP_LOW;
-      calMid = CAL_ORP_MID;
-      calHigh = CAL_ORP_HIGH;
-      calAvg = avg_ORP;
-    }
-    break;
-  case ezoDiO2:
-    /* code */
-    strcpy_P(&iicStr[12], (PGM_P)F("O2 -"));
-    if (!ImInside){
-      myMenu.c = 0;
-      myMenu.d = 0;
-      myMenu.e = 0;
-      myMenu.f = 0;
-      myMenu.g = 0;
-      calLow = CAL_DiO2_LOW;
-      calMid = CAL_DiO2_MID;
-      calHigh = CAL_DiO2_HIGH;
-      calAvg = avg_O2;
-    }
-    break;  
   default:
     break;
   }
@@ -465,6 +427,7 @@ void PrintCalMenu(byte ezo, byte all){
     if (myMenu.a){
       calTemp = PrintValsForCal(ezo, all, calMid);
       if (calTemp){
+        /*
         if (ezoProbe[ezo].type == ezoDiO2){
           // medium: air    cmd: "Cal"
           // calAction & calVal are right
@@ -475,10 +438,11 @@ void PrintCalMenu(byte ezo, byte all){
           calVal[0] = CompensatePH(calMid, calTemp);
         }
         else{
-          // RTD & ORP "Cal,value"
+          */
+          // RTD & CO2 "Cal,value"
           calAction[0] = 4;
           calVal[0] = calMid;
-        } 
+        //} 
       }      
     }
     break;
@@ -839,6 +803,7 @@ Start:
   
 }
 
+/*
 byte CorrectType(byte i){
     // Correct type for the three times EC
     if (i == 2){
@@ -879,6 +844,7 @@ byte CorrectFromRepeat(byte i){
   }
   return i;
 }
+*/
 
 byte PrintTempToLevel(byte pos){
   EscBold(1);
@@ -1438,6 +1404,7 @@ byte GetPosMax(byte posAct, byte posMax){
 }
 */
 #define GetPosMax(posAct, posMax) ((posAct > posMax) ? posAct : posMax)
+
 byte PrintWaterVals(byte pos){
 
   byte posMax = 0;

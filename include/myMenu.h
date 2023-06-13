@@ -340,10 +340,13 @@ void PrintCalMenu(byte ezo, byte all){
     // CO2
     strcpy_P(&iicStr[12], (PGM_P)F("CO2 -"));
     if (!ImInside){
-
-      calLow = CAL_PH_LOW;
-      calMid = CAL_PH_MID;
-      calHigh = CAL_PH_HIGH;
+      myMenu.a = 1;
+      myMenu.b = 1;
+      myMenu.d = 1;
+      myMenu.f = 1;
+      calLow = CAL_CO2_LOW;
+      calMid = CAL_CO2_MID;
+      calHigh = CAL_CO2_HIGH;
       calAvg = avg_CO2;
     }
     break;
@@ -355,10 +358,6 @@ void PrintCalMenu(byte ezo, byte all){
   
   if (!ImInside){
     EzoReset(ezo, all);
-    if (ezoProbe[ezo].type == ezoPH || ezoProbe[ezo].type == ezoEC){
-      // Set int. temp to 25°C
-      EzoSetCalTemp(ezo, all);
-    }
   }  
   ImInside = 1;
 
@@ -427,103 +426,30 @@ void PrintCalMenu(byte ezo, byte all){
     if (myMenu.a){
       calTemp = PrintValsForCal(ezo, all, calMid);
       if (calTemp){
-        /*
-        if (ezoProbe[ezo].type == ezoDiO2){
-          // medium: air    cmd: "Cal"
-          // calAction & calVal are right
-        }
-        else if (ezoProbe[ezo].type == ezoPH){
-          // "Cal,mid,value"
-          calAction[0] = 2;
-          calVal[0] = CompensatePH(calMid, calTemp);
-        }
-        else{
-          */
-          // RTD & CO2 "Cal,value"
-          calAction[0] = 4;
-          calVal[0] = calMid;
-        //} 
+        calAction[0] = 4;
+        calVal[0] = calMid;
       }      
     }
     break;
   case 'b':
     // 2-Pt. Cal
+    // just CO2
     calCnt = 2;
     if (myMenu.b){
-      switch (ezoProbe[ezo].type){
-      case ezoEC:
-        calTemp = PrintValsForCal(ezo, all, 0);
-        break;
-      default:
-        calTemp = PrintValsForCal(ezo, all, calMid);
-        break;
-      }
-      //calTemp = PrintValsForCal(ezo, all);
+      calTemp = PrintValsForCal(ezo, all, calLow);
       if (calTemp){
-        switch (ezoProbe[ezo].type){
-        case ezoEC:
-          // "Cal,dry" (air)
-          // "Cal,value"
-          calAction[0] = 6;
-          calAction[1] = 4;
-          calVal[1] = calMid;//compensateEC(calMid, calTemp);   // !!! MODIFY !!!
-          break;
-        case ezoDiO2:
-          // medium: air        cmd:  "Cal"
-          // medium: 0-liquid   cmd:  "Cal,0"     
-          calAction[1] = 4;   
-          break;
-        default:
-          // just pH
-          // "Cal,mid,value"
-          // "Cal,low,value"
-          calAction[0] = 2;
-          calVal[0] = CompensatePH(calMid, calTemp);   // !!! MODIFY !!!
-          calAction[1] = 2;
-          calVal[1] = calLow;
-          break;
-        }  
+        // "Cal,0"
+        // "Cal,value"
+        calAction[0] = 4;
+        calVal[0] = calLow;
+        calAction[1] = 4;
+        calVal[1] = calMid;
       }      
     }  
     break;
   case 'c':
     // 3-Pt. Cal
-    calCnt = 3;
-    if (myMenu.c){
-      switch (ezoProbe[ezo].type){
-      case ezoEC:
-        calTemp = PrintValsForCal(ezo, all, 0);
-        break;
-      default:
-        calTemp = PrintValsForCal(ezo, all, calMid);
-        break;
-      }
-      //calTemp = PrintValsForCal(ezo, all);
-      switch (ezoProbe[ezo].type){
-      case ezoEC:
-        // "Cal,dry" (air)
-        // "Cal,low,value"
-        // "Cal,high,value"
-        calAction[0] = 6;
-        calAction[1] = 4;
-        calVal[1] = CompensateEC(calLow, calTemp);   // !!! MODIFY !!!
-        calAction[2] = 4;
-        calVal[2] = calHigh;
-        break;
-      default:
-        // just pH
-        // "Cal,mid,value"
-        // "Cal,low,value"
-        // "Cal,high,value"
-        calAction[0] = 2;
-        calVal[0] = CompensatePH(calMid, calTemp);   // !!! MODIFY !!!
-        calAction[1] = 2;
-        calVal[1] = calLow;
-        calAction[2] = 2;
-        calVal[2] = calHigh;
-        break;
-      }  
-    }  
+    // QuickAir Probes don't have 3-Point calibrations
     break;
   case 'd':
     calMid = GetUserFloat(calMid);
@@ -546,14 +472,6 @@ void PrintCalMenu(byte ezo, byte all){
     for (byte i = 1; i < calCnt; i++){
       calTemp = PrintValsForCal(ezo, all, calVal[i]);
       if (calTemp){
-        if (ezoProbe[ezo].type == ezoPH){
-          // pH Temp - Compensation
-          calVal[i] = CompensatePH(calVal[i], calTemp);
-        }
-        else if (ezoProbe[ezo].type == ezoEC){
-          // EC Temp - Compensation
-          calVal[i] = CompensateEC(calVal[i], calTemp);
-        }
         EzoSetCal((char*)"", ezo, all, calVal[i], calAction[i]);
       }
       else{
@@ -785,7 +703,7 @@ Start:
   }
   else if (IsKeyBetween(pos, 'p', 'r')){
     // tooHigh
-    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - 'p'];
+    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - 'p']);
   }
   else if (IsKeyBetween(pos, '1', '2')){
     // Copy to Day / Night

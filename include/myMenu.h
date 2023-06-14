@@ -850,11 +850,15 @@ void RunManualSetting(byte port, byte style){
   for (byte i = 0; i < 7; i++) {
     manualTiming[i].runTime = manual.LowPort[i];
     if (i == 0){
-      manualTiming[i + 7].runTime = manual.HighPort[i];
+      manualTiming[7].runTime = manual.HighPort[0];
     }      
-    if (i == 4){
-      manualTiming[i + 7].runTime = manual.HighPort[i];
-    }      
+    else if (i == 4){
+      manualTiming[8].runTime = manual.HighPort[4];
+    }
+    else{
+      // the other 3 highs are "analog" values for their low-times
+    }
+    
   }
 
   // Search longest time

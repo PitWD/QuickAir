@@ -832,7 +832,7 @@ void RunManualSetting(byte port, byte style){
       uint16_t offset;
       uint16_t onTime;
       uint16_t offTime;
-  }manualTiming[12];
+  }manualTiming[7];
 
 
   int8_t pos = PrintMenuTop((char*)"- RUN Manual -") + 1;
@@ -847,16 +847,19 @@ void RunManualSetting(byte port, byte style){
   portStateFirstRun = 0;
 
   // Copy Low & High values to manualTiming array
-  for (byte i = 0; i < 8; i++) {
-    manualTiming[i].runTime = manual.Low[i];
-    if (i < 4){
-      manualTiming[i + 8].runTime = manual.High[i];
+  for (byte i = 0; i < 7; i++) {
+    manualTiming[i].runTime = manual.LowPort[i];
+    if (i == 0){
+      manualTiming[i + 7].runTime = manual.HighPort[i];
+    }      
+    if (i == 4){
+      manualTiming[i + 7].runTime = manual.HighPort[i];
     }      
   }
 
   // Search longest time
   uint16_t maxTime = 0;
-  for (byte i = 0; i < 12; i++){
+  for (byte i = 0; i < 7; i++){
     if ((i == port || port == 255) && manualTiming[i].runTime){
       // Port is in action...
       if (manualTiming[i].runTime > maxTime){

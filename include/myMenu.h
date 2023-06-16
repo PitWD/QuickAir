@@ -834,6 +834,7 @@ void RunManualSetting(byte port, byte style){
       uint16_t offTime;
   }manualTiming[9];
 
+  byte idToPort[] = {2, 0, 0, 0, 3, 4, 5, 6, 7};
 
   int8_t pos = PrintMenuTop((char*)"- RUN Manual -") + 1;
   EscLocate(3, pos);
@@ -951,10 +952,8 @@ void RunManualSetting(byte port, byte style){
         }
         else{
           // regular high/low ports
-        }
-        
-        
-        digitalWrite(i + 2, portState);
+          digitalWrite(idToPort[i], portState);
+        }        
       }
       runTime++;
 

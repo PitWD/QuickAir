@@ -119,7 +119,7 @@ struct manualSTRUCT{
     //-------------------------------------
     //          DEW          | g)[3]      |
     uint16_t LowPort[7];            // Heat / Exh. / Intake / Circ. / Hum / Add(CO2) / Heat(DEW)
-    uint16_t HighPort[5];           // Cool / Val / Val / Val / Dry 
+    uint16_t HighPort[5];           // Cool / Val  /   Val  /  Val  / Dry 
     char Name[17];
 }manual;
 

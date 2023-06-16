@@ -766,15 +766,21 @@ byte CorrectFromRepeat(byte i){
 
 byte PrintTempToLevel(byte pos){
   EscBold(1);
-  Serial.print(F("|   Temp.    |    EC     |     pH     |    Redox    |    O2     |   Level  |"));
+  //Serial.print(F("|   Temp.    |    EC     |     pH     |    Redox    |    O2     |   Level  |"));
+  Serial.print(F("|   TempRTD   |   TempHUM   |   Humidity   |     CO2      |  Dewing Point  |"));
+  //              1234567890123456789012345678901234567890123456789012345678901234567890123456
+  //                         21.50°C                100%         1200ppm         -10.00°C    
+  //                 >~<    ~1~   ~2~   ~3~         >~<             >~               >~
   pos = PrintLine(pos, 3, 76);    
   EscBold(0);
   return pos;
 }
 void PrintPortStates(){
 
-  // 8 low-ports / 4 high ports
-  byte posOfPort[] = {8, 17, 22, 26, 34, 47, 60, 73, 10, 19, 36, 75};
+  // 4 low-ports / 2 high ports
+  byte posOfPort[] = {7, 38, 54, 71, 9, 40};
+  // Three "analog" values
+  byte posOfVal[] = {15, 20, 26};
 
   static byte lastVal[12];
   byte isChanged = 0;
@@ -1035,10 +1041,10 @@ Start:
 
     EscLocate(8, pos++);
     EscBold(1);
-    PrintCentered(Fa(ezoStrLongType[i]), 17);
+    PrintCentered(Fa(ezoStrTimeType[i]), 17);
     PrintSpacer(1);
     
-    PrintManualMenuHlp1('a' + i + ecCnt, manual.Low[i + ecCnt], 1, 1, 1);
+    PrintManualMenuHlp1('a' + i + ecCnt, manual.LowPort[i + ecCnt], 1, 1, 1);
 
     if (i == 0 || i == 4){
       // RTD & Hum - High Ports (Time)
@@ -1096,16 +1102,16 @@ Start:
   }
   else if (IsKeyBetween(pos, 'a', 'g')){
     // LowTime
-    pos = GetUserTime16ptr(&manual.Low[pos - 'a']);
+    pos = GetUserTime16ptr(&manual.LowPort[pos - 'a']);
   }
   else if (IsKeyBetween(pos, 'i', 'k')){
     // HighTime (Values)
-    manual.High[pos - 'h'] = GetUserInt(manual.High[pos - 'h'])
+    manual.HighPort[pos - 'h'] = GetUserInt(manual.HighPort[pos - 'h']);
     pos = 1;
   }
-  else if (pos == 'h' || pos = 'l'){
+  else if (pos == 'h' || pos == 'l'){
     // HighTime - Times
-    pos = GetUserTime16ptr(&manual.High[pos - 'h']);
+    pos = GetUserTime16ptr(&manual.HighPort[pos - 'h']);
   }
   else if (IsKeyBetween(pos, 'A', 'G')){
     // Run Single LowTime
@@ -1113,7 +1119,7 @@ Start:
     RunManualSetting(pos, 1);
     pos = 2;
   }
-  else if (pos == 'H' || pos = 'L')){
+  else if (pos == 'H' || pos == 'L'){
     // Run Single HighTime
     pos = pos - 'H' + 6;
     RunManualSetting(pos, 1);
@@ -1202,20 +1208,20 @@ Start:
 
     //byte type = i;
     // Correct type for the three times EC
-    byte type = CorrectType(i);
+    //byte type = CorrectType(i);
     
     EscBold(1);
-    PrintCentered(Fa(ezoStrLongType[type]), 9);
+    PrintCentered(Fa(ezoStrTimeType[i]), 9);
     PrintSmallSpacer();
-    PrintTimingsMenuTime(type + 'a', setting.DelayTime[type], 0);
+    PrintTimingsMenuTime(i + 'a', setting.DelayTime[i], 0);
     PrintSmallSpacer();
     PrintTimingsMenuTime(i + 'h', setting.TimeTooLow[i], 1);
     PrintTimingsMenuTime(i + 'o', setting.TimeLow[i], 1);
     
     if (i < 5){
       // Has High Times
-      PrintTimingsMenuTime(type + 'v', setting.TimeHigh[type], 1);
-      PrintTimingsMenuTime(type + 'A', setting.TimeTooHigh[type], 0);
+      PrintTimingsMenuTime(i + 'v', setting.TimeHigh[i], 1);
+      PrintTimingsMenuTime(i + 'A', setting.TimeTooHigh[i], 0);
     }
     else{
       // No HighTimes
@@ -1307,12 +1313,6 @@ byte PrintWaterValsHlp(byte pos, byte posX, byte ezotype, byte lz, byte dp, int 
 
   if (posAct){
     avgVal[ezotype] = avg / (long)posAct;
-    if (ezotype == ezoORP){
-      // Value of probe (eH/mV) is just the Redox-Potential
-      // The Redox-Value (redox-capability) need the pH...
-      // rH = eH /28.9 + (2 * pH)
-      avgVal[ezoORP] = (avgVal[ezoORP] * 10) / (int32_t)289 + (2 * avgVal[ezoPH]);
-    }    
   }
 
   return posAct;
@@ -1367,22 +1367,19 @@ void PrintAVGsHLP(byte type, byte posX, byte posY, byte preDot, byte printUnit){
 }
 byte PrintAVGs(byte pos){
 
-  PrintAVGsHLP(ezoRTD, 7, pos, 2, 1);  
+  PrintAVGsHLP(ezoRTD, 14, pos, 3, 1);  
 
-  SetAvgColorEZO(ezoEC);
-  EscLocate(20, pos);
-  PrintBoldInt(avg_EC / 1000, 4, ' ');
-  PrintUnit(ezoEC, 0, 0, 3);
-  
-  PrintAVGsHLP(ezoPH, 32, pos, 2, 1);  
-  
-  PrintAVGsHLP(ezoORP, 44, pos, 4, 0);
-  EscColor(0);
-  Serial.print(F("rH"));
+  SetAvgColorEZO(ezoHUM);
+  EscLocate(37, pos);
+  PrintBoldInt(avg_HUM / 1000, 3, ' ');
+  PrintUnit(ezoHUM, 0, 0, 3);
 
-  PrintAVGsHLP(ezoDiO2, 58, pos, 3, 1);
+  SetAvgColorEZO(ezoCO2);
+  EscLocate(50, pos);
+  PrintBoldInt(avg_CO2 / 1000, 4, ' ');
+  PrintUnit(ezoCO2, 0, 0, 3);
 
-  PrintAVGsHLP(ezoLVL, 72, pos, 3, 1);
+  PrintAVGsHLP(ezoDEW, 66, pos, 3, 1);
 
   return pos + 1;
 

@@ -107,17 +107,17 @@ struct settingSTRUCT{
 struct manualSTRUCT{
     // m) SomeBlaBlaName     |     Low    |     High   |   Value    |
     //---------------------------------------------------------------
-    //          RTD          | a)         | h)         |
+    //          RTD          | a)[0+2]    | h)[4]      |
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     //         Exhaust       | b)         |            | i)         |
     //         Intake        | c)         |            | j)         |
     //         Circ.         | d)         |            | k)         |
     //---------------------------------------------------------------
-    //          HUM          | e)         | l)         |
+    //          HUM          | e)[1]      | l)[5]      |
     //--------------------------------------------------
-    //          CO2          | f)         | 
+    //          CO2          | f)[2]      | 
     //-------------------------------------
-    //          DEW          | g)         |
+    //          DEW          | g)[3]      |
     uint16_t LowPort[7];            // Heat / Exh. / Intake / Circ. / Hum / Add(CO2) / Heat(DEW)
     uint16_t HighPort[5];           // Cool / Val / Val / Val / Dry 
     char Name[17];

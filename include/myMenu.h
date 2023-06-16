@@ -832,7 +832,7 @@ void RunManualSetting(byte port, byte style){
       uint16_t offset;
       uint16_t onTime;
       uint16_t offTime;
-  }manualTiming[7];
+  }manualTiming[9];
 
 
   int8_t pos = PrintMenuTop((char*)"- RUN Manual -") + 1;
@@ -849,21 +849,14 @@ void RunManualSetting(byte port, byte style){
   // Copy Low & High values to manualTiming array
   for (byte i = 0; i < 7; i++) {
     manualTiming[i].runTime = manual.LowPort[i];
-    if (i == 0){
-      manualTiming[7].runTime = manual.HighPort[0];
-    }      
-    else if (i == 4){
-      manualTiming[8].runTime = manual.HighPort[4];
-    }
-    else{
-      // the other 3 highs are "analog" values for their low-times
-    }
-    
   }
+  // the other 3 highs are "analog" values for their low-times
+    manualTiming[7].runTime = manual.HighPort[0];
+    manualTiming[8].runTime = manual.HighPort[4];
 
   // Search longest time
   uint16_t maxTime = 0;
-  for (byte i = 0; i < 7; i++){
+  for (byte i = 0; i < 9; i++){
     if ((i == port || port == 255) && manualTiming[i].runTime){
       // Port is in action...
       if (manualTiming[i].runTime > maxTime){
@@ -873,7 +866,7 @@ void RunManualSetting(byte port, byte style){
   }
   
   // Calc offset / onTime / offTime
-  for (byte i = 0; i < 12; i++){
+  for (byte i = 0; i < 9; i++){
 
     uint16_t repeats = 0;
 
@@ -939,7 +932,7 @@ void RunManualSetting(byte port, byte style){
       strcpy(&strHLP2[8], (char*)" left...");
       PrintErrorOK(0, strlen(strHLP2), strHLP2);
 
-      for (byte i = 0; i < 12; i++){
+      for (byte i = 0; i < 9; i++){
 
         byte portState = 0;
         if ((i == port || port == 255) && manualTiming[i].runTime){
@@ -953,6 +946,14 @@ void RunManualSetting(byte port, byte style){
             // Offset is still active
           }
         }
+        if (i && i < 4){
+          // Exhaust / Intake / Circulation ("analog" - ports)
+        }
+        else{
+          // regular high/low ports
+        }
+        
+        
         digitalWrite(i + 2, portState);
       }
       runTime++;

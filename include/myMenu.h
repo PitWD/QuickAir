@@ -785,8 +785,8 @@ void PrintPortStates(){
   static byte lastVal[12];
   byte isChanged = 0;
 
-  // Check on Port_Change
-  for (byte i = 0; i < 12; i++){
+  // Check on Digital Port_Changes
+  for (byte i = 0; i < 6; i++){
     byte val = digitalRead(i + 2);
     if (val != lastVal[i]){
       lastVal[i] = val;
@@ -795,7 +795,7 @@ void PrintPortStates(){
   }
   
   if (isChanged || !portStateFirstRun){
-    for (byte i = 0; i < 8; i++){
+    for (byte i = 0; i < 4; i++){
       // Low-Ports
       EscLocate(posOfPort[i], myLastLine);
       if (lastVal[i]){
@@ -810,7 +810,7 @@ void PrintPortStates(){
       }
       Serial.print(F("~"));
     }
-    for (byte i = 8; i < 12; i++){
+    for (byte i = 4; i < 6; i++){
       // High-Ports
       EscLocate(posOfPort[i], myLastLine);
       if (lastVal[i]){
@@ -1037,7 +1037,7 @@ Start:
   PrintLine(pos++, 5, 73);
   byte ecCnt = 0;
 
-  for (i = 0; i < 8; i++){
+  for (i = 0; i < 7; i++){
 
     EscLocate(8, pos++);
     EscBold(1);
@@ -1204,7 +1204,7 @@ Start:
 
   PrintLine(pos++, 3, 76);
   EscLocate(3, pos++);
-  for (i = 0; i < 8; i++){
+  for (i = 0; i < 7; i++){
 
     //byte type = i;
     // Correct type for the three times EC

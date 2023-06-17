@@ -161,7 +161,7 @@ void SettingsToRom(int set){ //(int set){
     EEPROM.put(242 + set * 197, setting);
 }
 void ManualTimesToRom(int set){
-    // Save temporay/manual times (4x41 byte / end @ 909)
+    // Save temporary/manual times (4x41 byte / end @ 909)
     //set *= 41;
     EEPROM.put(833 + set * 41, manual);
 }

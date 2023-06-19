@@ -165,9 +165,9 @@ void loop() {
     // Check High/Low of AVGs 
     // compare timeOuts with timing-setting
     //for (byte i = 0; i < 6; i++){
-    for (byte i = 0; i < 8; i++){
+    for (byte i = 0; i < 6; i++){
 
-      byte type = i;
+      byte type = i;      
       // Correct type for the three times EC
       if (i == 2){
         type = 1;

@@ -105,39 +105,43 @@ uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte ezotype, byte i, 
     // NoAction
   }
   
-  // Port 2-8 - Action ports for low / tooLow
-      // Temp / EC-1 / EC-2 / EC-3 / pH / redox / O2 / level
-  // Port 9-11 - Action ports for high / tooHigh
-      // Temp / EC / pH / level
-  //digitalWrite(ezotype + 2 + (isHighPort * 6), *backSet);
+  // Port 2   heat (RTD low/tooLow)
+  // Port 3   humidify (HUM low/tooLow)
+  // Port 4   raise CO2 (CO2 low/tooLow)
+  // Port 5   heat or dry (DEW close/tooClose)
+  // Port 6   cool (RTD high/tooHigh)
+  // Port 7   dry (HUM high/tooHigh)
+
   if (isHighPort){
     switch (i){
-    case 2 ... 3:
-      // 2nd & 3rd EC
-    case 6:
-      // O2  
-      i = 0;
-      break;
-    case 5:
-      // ORPs low-port is high-port, too
-      // cause (too) high/low ORPs need the same action (change/waste water)
-      i = 7;
+    case 0:
+      // RTD
+      i = 6;
       break;
     case 4:
-      // pH
-      i = 12;
-      break;
-    case 7:
-      // Level
-      i = 13;
+      // HUM
+      i = 7;
       break;
     default:
-      i += 10;
+      i = 0;
       break;
     }
   }
   else{
-    i += 2;
+    // LowPort
+    switch (i){
+    case 0:
+      // RTD
+      i = 2;
+      break;
+    case 4 ... 6:
+      // HUM / CO2 / DEW
+      i -= 1;
+      break;
+    default:
+      i = 0;
+      break;
+    }
   }
   
   if (i){
@@ -165,15 +169,15 @@ void loop() {
     // Check High/Low of AVGs 
     // compare timeOuts with timing-setting
     //for (byte i = 0; i < 6; i++){
-    for (byte i = 0; i < 6; i++){
+    for (byte i = 0; i < 7; i++){
 
-      byte type = i;      
-      // Correct type for the three times EC
-      if (i == 2){
-        type = 1;
+      byte type;      
+      // Correct type for the four times EC
+      if (i < 4){
+        type = ezoRTD;
       }
-      else if (i > 2){
-        type -= 2;
+      else{
+        type = i - 3;
       }
 
       // Check On needed/pending low-actions

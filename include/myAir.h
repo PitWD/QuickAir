@@ -124,9 +124,9 @@ struct manualSTRUCT{
 }manual;
 
 // Counter for Low/High
-uint32_t tooLowSince[4];
-uint32_t lowSince[4];
-uint32_t okSince[4];
+uint32_t tooLowSince[7];
+uint32_t lowSince[7];
+uint32_t okSince[7];
 uint32_t highSince[2];
 uint32_t tooHighSince[2];
 // Time of last action 

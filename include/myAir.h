@@ -99,8 +99,8 @@ struct settingSTRUCT{
     int32_t FailSaveValue[4];   // Temp / Hum / CO2 / DEW / 
     int32_t ValueTooLow[4];     // Temp / Hum / CO2 / Dew
     int32_t ValueLow[4];
-    int32_t ValueHigh[3];
-    int32_t ValueTooHigh[3];
+    int32_t ValueHigh[2];
+    int32_t ValueTooHigh[2];
     char Name[17];
 }setting;
 

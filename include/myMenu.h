@@ -626,12 +626,12 @@ void PrintValuesMenu(){
 
 //             |  FailSafe  |   tooLow   |    Low     |    High    |  tooHigh   |
 //-------------------------------------------------------------------------------
-//     RTD     | a)         | e)         | i)         | m)         | p)         |
+//     RTD     | a)         | e)         | i)         | m)         | o)         |
 //-------------------------------------------------------------------------------
-//     HUM     | b)         | f)         | j)         | n)         | q)         |
+//     HUM     | b)         | f)         | j)         | n)         | p)         |
 //-------------------------------------------------------------------------------
-//     CO2     | c)         | g)         | k)         | o)         | r)         |
-//-------------------------------------------------------------------------------
+//     CO2     | c)         | g)         | k)         |
+//-----------------------------------------------------
 //     DEW     | d)         | h)         | l)         |
 
 
@@ -665,8 +665,8 @@ Start:
 
     PrintValuesMenuHlp('i', i, setting.ValueLow[i]);
 
-    if (i < 3){
-      // DEW has no High / tooHigh
+    if (i < 2){
+      // DEW & CO2 have no High / tooHigh
       PrintValuesMenuHlp('m', i, setting.ValueHigh[i]);
       PrintValuesMenuHlp('p', i, setting.ValueTooHigh[i]);
     }
@@ -679,7 +679,7 @@ Start:
   
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('r', 3);
+  pos = GetUserKey('p', 3);
 
   if (pos < 1){
     // Exit & TimeOut
@@ -697,13 +697,13 @@ Start:
     // Low
     pos = PrintValuesMenuChangeVal(&setting.ValueLow[pos - 'i']);
   }
-  else if (IsKeyBetween(pos, 'm', 'o')){
+  else if (IsKeyBetween(pos, 'm', 'n')){
     // High
     pos = PrintValuesMenuChangeVal(&setting.ValueHigh[pos - 'm']);
   }
-  else if (IsKeyBetween(pos, 'p', 'r')){
+  else if (IsKeyBetween(pos, 'o', 'p')){
     // tooHigh
-    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - 'p']);
+    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - '0']);
   }
   else if (IsKeyBetween(pos, '1', '2')){
     // Copy to Day / Night

@@ -83,15 +83,15 @@ uint32_t ValidTimeSince(uint32_t valIN){
   }
   return myTime - valIN;
 }
-uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte ezotype, byte i, byte isHighPort, byte *backSet){
+uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte i, byte isHighPort, byte *backSet){
 
   uint32_t r = valIN;
   *backSet = 0;
 
   // If something is OnAction
-  if (ValidTimeSince(valIN) > setting.DelayTime[ezotype]){
+  if (ValidTimeSince(valIN) > setting.DelayTime[i]){
     // Action Valid
-    if ((ValidTimeSince(valIN) - setting.DelayTime[ezotype]) > actionTime){
+    if ((ValidTimeSince(valIN) - setting.DelayTime[i]) > actionTime){
       // ActionTime done
       lastAction[i] = myTime;
       r = 0;
@@ -182,10 +182,10 @@ void loop() {
 
       // Check On needed/pending low-actions
       preToo = tooLowSince[i];
-      tooLowSince[i] = checkAction(tooLowSince[i], setting.TimeTooLow[i], type, i, 0, &err);
+      tooLowSince[i] = checkAction(tooLowSince[i], setting.TimeTooLow[i], i, 0, &err);
       if (!err){
         // TooLow isn't in Action...
-        lowSince[i] = checkAction(lowSince[i], setting.TimeLow[i], type, i, 0, &err);
+        lowSince[i] = checkAction(lowSince[i], setting.TimeLow[i], i, 0, &err);
         //if (preToo != tooLowSince[i]){ 
         if (preToo != tooLowSince[i]){ 
           // after finished tooXYZ-Action - reset lowSince, too          
@@ -202,52 +202,34 @@ void loop() {
       if (err){
         // something is in action
       }
-      
-
-      // Check On needed/pending high-actions
-      preToo = tooHighSince[i];
-      
-      // we've just 4 high-actions... (Temp, EC, pH, Level)
-      byte j = i;
+            
+      // we've just 2 high-actions... (RTD, HUM)
+      byte j;
       switch (i){
-      case 2 ... 3:
-        // 2nd & 3rd EC
-      case 6:
-        // O2
+      case 0 ... 3:
+        // All Temperatures
+        j = ezoRTD;
+      case 4:
+        // Humidity
+        j = ezoHUM;
+        break;
+      default:
         j = 0;
         break;
-      case 5:
-        // ORP
-        // j = 5;
-        break;
-      case 4:
-        j = 2;
-        break;
-      case 7:
-        j = 3;
-      default:
-        break;
-      }    
+      }          
 
-      uint16_t highToUse = setting.TimeHigh[j];
-      uint16_t tooHighToUse = setting.TimeTooHigh[j];
-      if (j == 5){
-        // ORPs (too)High timing is same like ORPs (too)Low timing
-        // ORP can't be fixed if it's high/low - change/waste water is the only option
-        highToUse = setting.TimeLow[j];
-        tooHighToUse = setting.TimeTooLow[j];
-      }
-      
-      
+      // Check On needed/pending high-actions
+      preToo = tooHighSince[j];
+
       if (j || (!j && !i)){
         
-        tooHighSince[i] = checkAction(tooHighSince[i], tooHighToUse, type, i, 1, &err);
+        tooHighSince[j] = checkAction(tooHighSince[j], setting.ValueTooHigh[j], i, 1, &err);
         if (!err){
           // TooHigh isn't in Action...
-          highSince[i] = checkAction(highSince[i], highToUse, type, i, 1, &err);
-          if (preToo != tooHighSince[i]){ 
+          highSince[j] = checkAction(highSince[j], setting.ValueHigh[j], i, 1, &err);
+          if (preToo != tooHighSince[j]){ 
             // after finished tooXYZ-Action - reset highSince, too
-            highSince[i] = 0;
+            highSince[j] = 0;
             err = 0;
           }
           if (err){
@@ -266,8 +248,10 @@ void loop() {
       switch (GetAvgState(avgVal[type], setting.ValueTooLow[type], setting.ValueLow[type], setting.ValueHigh[type], setting.ValueTooHigh[type])){
       case fgCyan:
         // tooLow
-        highSince[i] = 0;
-        tooHighSince[i] = 0;
+        if (i < 2){
+          highSince[i] = 0;
+          tooHighSince[i] = 0;
+        }
         okSince[i] = 0;
         if (!tooLowSince[i]){
           // 1st time tooLow recognized
@@ -280,8 +264,10 @@ void loop() {
         break;
       case fgBlue:
         // Low
-        highSince[i] = 0;
-        tooHighSince[i] = 0;
+        if (i < 2){
+          highSince[i] = 0;
+          tooHighSince[i] = 0;
+        }
         tooLowSince[i] = 0;
         okSince[i] = 0;
         if (!lowSince[i]){
@@ -294,13 +280,15 @@ void loop() {
         lowSince[i] = 0;
         tooLowSince[i] = 0;
         okSince[i] = 0;
-        if (!tooHighSince[i]){
-          // 1st time tooLow recognized
-          tooHighSince[i] = myTime;
-        }
-        if (!highSince[i]){
-          // If tooXYZ is active... regular state becomes active too
-          highSince[i] = tooHighSince[i];
+        if (i < 2){
+          if (!tooHighSince[i]){
+            // 1st time tooLow recognized
+            tooHighSince[i] = myTime;
+          }
+          if (!highSince[i]){
+            // If tooXYZ is active... regular state becomes active too
+            highSince[i] = tooHighSince[i];
+          }
         }
         break;
       case fgYellow:
@@ -309,9 +297,11 @@ void loop() {
         tooLowSince[i] = 0;
         tooHighSince[i] = 0;
         okSince[i] = 0;
-        if (!highSince[i]){
-          // 1st time High recognized
-          highSince[i] = myTime;
+        if (i < 2){
+          if (!highSince[i]){
+            // 1st time High recognized
+            highSince[i] = myTime;
+          }
         }
         break;
       default:
@@ -327,53 +317,6 @@ void loop() {
         break;
       }
       
-    }
-
-    // Check for EC synchronization
-    err = 0;   // use to save if one of the EC-Ports is active
-    for (byte i = 3; i < 6; i++){
-      // Low Ports
-      if (digitalRead(i)){
-        err = 1;
-      }          
-    }
-    if (digitalRead(11)){
-      // High Port
-      err = 1;
-    }          
-    
-    uint32_t minmax;
-    if (!err){
-      // Al EC action-ports are OFF
-      minmax = tooLowSince[1];  // use type as highest / lowest
-      for (byte i = 2; i < 4; i++){
-        minmax = ((minmax) > (tooLowSince[i]) ? (minmax) : (tooLowSince[i]));
-      }
-      for (byte i = 1; i < 4; i++){
-        tooLowSince[i] = minmax;
-      }
-      minmax = lowSince[1];  // use type as highest / lowest
-      for (byte i = 2; i < 4; i++){
-        minmax = ((minmax) > (lowSince[i]) ? (minmax) : (lowSince[i]));
-      }
-      for (byte i = 1; i < 4; i++){
-        lowSince[i] = minmax;
-      }
-
-      minmax = highSince[1];  // use type as highest / lowest
-      for (byte i = 2; i < 4; i++){
-        minmax = ((minmax) > (highSince[i]) ? (minmax) : (highSince[i]));
-      }
-      for (byte i = 1; i < 4; i++){
-        highSince[i] = minmax;
-      }
-      minmax = tooHighSince[1];  // use type as highest / lowest
-      for (byte i = 2; i < 4; i++){
-        minmax = ((minmax) > (tooHighSince[i]) ? (minmax) : (tooHighSince[i]));
-      }
-      for (byte i = 1; i < 4; i++){
-        tooHighSince[i] = minmax;
-      }
     }
 
     //Read EZO's

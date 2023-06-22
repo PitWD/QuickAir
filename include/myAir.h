@@ -160,18 +160,18 @@ long avgVal[4]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 
 void DefaultProbesToRom(){
     // Save actual probe-constellation as Standard to Eeprom
-    // 27 byte * 13 = 351
+    // 22 byte * 12 probes max = 264 (id 263)
     EEPROM.put(0, ezoProbe);
 }
 void SettingsToRom(int set){ //(int set){
     // Save Action Model (2x197 byte / end @ 745)
     //set *= 197;
-    EEPROM.put(242 + set * 197, setting);
+    EEPROM.put(264 + (set * 151), setting);
 }
 void ManualTimesToRom(int set){
     // Save temporary/manual times (4x41 byte / end @ 909)
     //set *= 41;
-    EEPROM.put(833 + set * 41, manual);
+    EEPROM.put(866 + set * 41, manual);
 }
 
 void DefaultProbesFromRom(){
@@ -179,11 +179,11 @@ void DefaultProbesFromRom(){
 }
 void SettingsFromRom(int set){ //(int set){
     //set *= 197;
-   EEPROM.get(242 + set * 197, setting);
+   EEPROM.get(244 + set * (151), setting);
 }
 void ManualTimesFromRom(int set){
     //set *= 41;
-    EEPROM.get(833 + set * 41, manual);
+    EEPROM.get(866 + set * 41, manual);
 }
 
 void OffOutPorts(){

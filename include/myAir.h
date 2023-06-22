@@ -1,12 +1,16 @@
 #include "quicklib.h"
 #include <EEPROM.h>
 
-#define EZO_MAX_PROBES 11
+#define EZO_MAX_PROBES 12
 #define EZO_MAX_VALUES 3        // 3 for full HUM / 5 for full RGB...
 #define EZO_1st_ADDRESS 32
 #define EZO_LAST_ADDRESS 127
 
-#define TRIPLE_EC 1             // If we have three EC-Low actions
+// EEprom
+//  4x settings 151 Bytes = 602
+// 12x ezoProbe  22 Bytes = 264     - 866 (133)
+//  3x manual    41 Bytes = 123     - 989 (10)
+
 
 // What is the actual Action
 // 0 = all read
@@ -91,20 +95,23 @@ ezoProbeSTRUCT ezoProbe[EZO_MAX_PROBES];
 int32_t ezoValue[EZO_MAX_PROBES][EZO_MAX_VALUES];
 
 struct settingSTRUCT{
-    uint16_t DelayTime[7];      // Temp / Exhaust / Intake / Circulation / Humidity / CO2 / Dew (heat on Wet)
-    uint16_t TimeTooLow[7];     // 
-    uint16_t TimeLow[7];
-    uint16_t TimeHigh[5];
-    uint16_t TimeTooHigh[5];
-    int32_t FailSaveValue[4];   // Temp / Hum / CO2 / DEW / 
-    int32_t ValueTooLow[4];     // Temp / Hum / CO2 / Dew
-    int32_t ValueLow[4];
-    int32_t ValueHigh[2];
-    int32_t ValueTooHigh[2];
-    char Name[17];
+    // 151 Byte x 2 (day & night) 301 Byte
+    uint16_t DelayTime[7];      // 14      // Temp / Exhaust / Intake / Circulation / Humidity / CO2 / Dew (heat on Wet)
+    uint16_t TimeTooLow[7];     // 14
+    uint16_t TimeLow[7];        // 14
+    uint16_t TimeHigh[5];       // 10
+    uint16_t TimeTooHigh[5];    // 10
+    int32_t FailSaveValue[4];   // 16   // Temp / Hum / CO2 / DEW / 
+    int32_t ValueTooLow[4];     // 16   // Temp / Hum / CO2 / Dew
+    int32_t ValueLow[4];        // 16
+    int32_t ValueHigh[2];       // 16
+    int32_t ValueTooHigh[2];    // 08
+    char Name[17];              // 17
+    //                            151
 }setting;
 
 struct manualSTRUCT{
+    // 41 Bytes x doesn't matter
     // m) SomeBlaBlaName     |     Low    |     High   |   Value    |
     //---------------------------------------------------------------
     //          RTD          | a)[0+2]    | h)[4]      |
@@ -118,9 +125,10 @@ struct manualSTRUCT{
     //          CO2          | f)[2]      | 
     //-------------------------------------
     //          DEW          | g)[3]      |
-    uint16_t LowPort[7];            // Heat / Exh. / Intake / Circ. / Hum / Add(CO2) / Heat(DEW)
-    uint16_t HighPort[5];           // Cool / Val  /   Val  /  Val  / Dry 
-    char Name[17];
+    uint16_t LowPort[7];    // 14            // Heat / Exh. / Intake / Circ. / Hum / Add(CO2) / Heat(DEW)
+    uint16_t HighPort[5];   // 10            // Cool / Val  /   Val  /  Val  / Dry 
+    char Name[17];          // 17
+    //                      // 41
 }manual;
 
 // Counter for Low/High

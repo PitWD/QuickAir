@@ -13,12 +13,13 @@ mySTRUCT my;
   byte portStateFirstRun = 0;
 
 void myToRom(){
-  EEPROM.put(997, my);
-  // 1011 is next...
+  // 12 Byte
+  EEPROM.put(989, my);
+  // 1001 is next...
 }
 void myFromRom(){
-  // 1011 is next...
-  EEPROM.get(997, my);
+  // 1001 is next...
+  EEPROM.get(989, my);
   if (!IsSerialSpeedValid(my.Speed)){
     my.Speed = 9600;
   }

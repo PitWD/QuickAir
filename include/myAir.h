@@ -10,7 +10,7 @@
 //  4x settings 151 Bytes = 602
 // 12x ezoProbe  22 Bytes = 264     - 866 (133)
 //  3x manual    41 Bytes = 123     - 989 (10)
-
+// 12 Byte "MY"
 
 // What is the actual Action
 // 0 = all read

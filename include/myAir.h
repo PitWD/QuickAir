@@ -187,6 +187,7 @@ void ManualTimesFromRom(int set){
 }
 
 void OffOutPorts(){
+    // Missing that the ventilation-ports 'OFF' is the value of 'OK'
     for (byte i = 2; i < 18; i++){
         digitalWrite(i, LOW);
     }

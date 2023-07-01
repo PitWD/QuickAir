@@ -57,7 +57,9 @@ void setup() {
     // Set Fail-Save Values to avg_s
     avgVal[i] = setting.FailSaveValue[i];
   }    
+
 // EMERGENCY-BOOT: EzoScan(); my.Default = 0;
+
   if (my.Default == 1 && my.Cnt && my.Cnt <= EZO_MAX_PROBES){ 
     DefaultProbesFromRom();
     ezoCnt = my.Cnt;
@@ -309,8 +311,10 @@ void loop() {
         // Reset ...Since Vars
         tooLowSince[i] = 0;
         lowSince[i] = 0;
-        highSince[i] = 0;
-        tooHighSince[i] = 0;
+        if (i < 2){
+          highSince[i] = 0;
+          tooHighSince[i] = 0;
+        }
         if (!okSince[i]){
           okSince[i] = myTime;
         }

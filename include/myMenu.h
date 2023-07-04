@@ -783,12 +783,21 @@ void PrintPortStates(){
   // Three "analog" values
   byte posOfVal[] = {15, 20, 26};
 
-  static byte lastVal[12];
+  static byte lastVal[9];
   byte isChanged = 0;
 
   // Check on Digital Port_Changes
+  // 4 low-ports / 2 high-ports
   for (byte i = 0; i < 6; i++){
     byte val = digitalRead(i + 2);
+    if (val != lastVal[i]){
+      lastVal[i] = val;
+      isChanged = 1;
+    }
+  }
+  // Check on "analog" Port_Changes
+  for (byte i = 6; i < 9; i++){
+    byte val = stepRead(i - 6);
     if (val != lastVal[i]){
       lastVal[i] = val;
       isChanged = 1;
@@ -826,6 +835,22 @@ void PrintPortStates(){
         Serial.print(F("<"));        
       }
     }
+
+    // Loop the Analog Ports
+    for (byte i = 6; i < 9; i++){
+      // Analog-Ports
+      EscLocate(posOfPort[i], myLastLine);
+      SetAvgColorEZO(ezoRTD);
+      EscBold(1);
+      Serial.print(lastVal[i]);
+      EscColor(0);
+      EscBold(0);
+      Serial.print(F("~"));
+      EscCursorLeft(2);
+      Serial.print(F("~"));
+    }
+
+
     portStateFirstRun = 1;
     EscBoldColor(0);
   }

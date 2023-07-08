@@ -1260,13 +1260,14 @@ Start:
       // Has High Times
       PrintTimingsMenuTime(i + 'v', setting.TimeHigh[i], 1);
       PrintTimingsMenuTime(i + 'A', setting.TimeTooHigh[i], 0);
+      PrintSmallSpacer();
     }
     else{
       // No HighTimes
-      PrintFlexSpacer(11, 10);
+      // PrintFlexSpacer(11, 10);
+      
     }
     
-    PrintSmallSpacer();
     EscLocate(3, pos);
 
     switch (i){
@@ -1284,17 +1285,15 @@ Start:
       pos++;  
       pos = PrintLine(pos, 3, 76);
       break;
-    case 5:
-    case 6:
-      pos = PrintLine(pos, 3, 49);
+    case 4:
       break;
     default:
       pos++;
       break;
     }
   }
-
-  pos = PrintCopySettingTo(pos);
+  
+  pos = PrintCopySettingTo(pos + 1);
 
   PrintMenuEnd(pos + 1);
 

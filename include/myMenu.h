@@ -14,12 +14,12 @@ mySTRUCT my;
 
 void myToRom(){
   // 12 Byte
-  EEPROM.put(989, my);
+  EEPROM.put(1000, my);
   // 1001 is next...
 }
 void myFromRom(){
   // 1001 is next...
-  EEPROM.get(989, my);
+  EEPROM.get(1000, my);
   if (!IsSerialSpeedValid(my.Speed)){
     my.Speed = 9600;
   }
@@ -669,7 +669,7 @@ Start:
     if (i < 2){
       // DEW & CO2 have no High / tooHigh
       PrintValuesMenuHlp('m', i, setting.ValueHigh[i]);
-      PrintValuesMenuHlp('p', i, setting.ValueTooHigh[i]);
+      PrintValuesMenuHlp('o', i, setting.ValueTooHigh[i]);
     }
     
     EscLocate(3, pos++);
@@ -704,7 +704,7 @@ Start:
   }
   else if (IsKeyBetween(pos, 'o', 'p')){
     // tooHigh
-    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - '0']);
+    pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - 'o']);
   }
   else if (IsKeyBetween(pos, '1', '2')){
     // Copy to Day / Night
@@ -797,7 +797,7 @@ void PrintPortStates(){
   }
   // Check on "analog" Port_Changes
   for (byte i = 6; i < 9; i++){
-    byte val = stepRead(i - 6);
+    byte val = 3;//stepRead(i - 6);
     if (val != lastVal[i]){
       lastVal[i] = val;
       isChanged = 1;
@@ -1205,16 +1205,23 @@ void PrintTimingsMenu(){
 //          | DelayTimes |   tooLow   |    Low     |    High    |  tooHigh   |
 //----------------------------------------------------------------------------
 //   RTD    | a)         | h)         | o)         | v)         | A)         |
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//----------------------------------------------------------------------------
+
+//          |     OK     |   tooLow   |    Low     |    High    |  tooHigh   |
+//----------------------------------------------------------------------------
 //  Exhaust | b)         | i)         | p)         | w)         | B)         |
 //  Intake  | c)         | j)         | q)         | x)         | C)         |
 //  Circ.   | d)         | k)         | r)         | y)         | D)         |
+//----------------------------------------------------------------------------
+
+//          | DelayTimes |   tooLow   |    Low     |    High    |  tooHigh   |
 //----------------------------------------------------------------------------
 //   HUM    | e)         | l)         | s)         | z)         | E)         |
 //----------------------------------------------------------------------------
 //   CO2    | f)         | m)         | t)         | 
 //--------------------------------------------------
 //   DEW    | g)         | n)         | u)         | 
+//--------------------------------------------------
 
 Start:
 
@@ -1222,19 +1229,24 @@ Start:
   byte i = 0;
 
   
-  EscLocate(12, pos++);
-  PrintSpacer(1);
-  Serial.print(F("DelayTimes"));
-  PrintFlexSpacer(0, 2);
-  PrintLowToHigh();
-
-  PrintLine(pos++, 3, 76);
-  EscLocate(3, pos++);
   for (i = 0; i < 7; i++){
 
-    //byte type = i;
-    // Correct type for the three times EC
-    //byte type = CorrectType(i);
+    switch (i){
+    case 4:
+      pos++;
+    case 0:
+      EscLocate(12, pos++);
+      PrintSpacer(1);
+      Serial.print(F("DelayTimes"));
+      PrintFlexSpacer(0, 2);
+      PrintLowToHigh();
+      PrintLine(pos++, 3, 76);
+      EscLocate(3, pos++);
+      break;    
+    default:
+      EscLocate(3, pos);
+      break;
+    }
     
     EscBold(1);
     PrintCentered(Fa(ezoStrTimeType[i]), 9);
@@ -1255,14 +1267,38 @@ Start:
     }
     
     PrintSmallSpacer();
-    EscLocate(3, pos++);
+    EscLocate(3, pos);
+
+    switch (i){
+    case 0:
+      pos = PrintLine(pos, 3, 76);
+      pos++;
+      EscLocate(12, pos++);
+      PrintSpacer(1);
+      Serial.print(F(" OK-Step  "));
+      PrintFlexSpacer(0, 2);
+      PrintLowToHigh();
+      pos = PrintLine(pos++, 3, 76);
+      break; 
+    case 3: 
+      pos++;  
+      pos = PrintLine(pos, 3, 76);
+      break;
+    case 5:
+    case 6:
+      pos = PrintLine(pos, 3, 49);
+      break;
+    default:
+      pos++;
+      break;
+    }
   }
 
   pos = PrintCopySettingTo(pos);
 
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('z', 2);
+  pos = GetUserKey('z', 3);
 
   if (pos < 1){
     // Exit & TimeOut
@@ -1281,13 +1317,13 @@ Start:
   }
   else if (IsKeyBetween(pos, 'v', 'z')){
     // High
-    pos = GetUserTime16ptr(&setting.TimeHigh[pos - 'w']);
+    pos = GetUserTime16ptr(&setting.TimeHigh[pos - 'v']);
   }
   else if (IsKeyBetween(pos, 'A', 'E')){
     // tooHigh
     pos = GetUserTime16ptr(&setting.TimeTooHigh[pos - 'A']);
   }
-  else if (IsKeyBetween(pos, '1', '2')){
+  else if (IsKeyBetween(pos, '1', '3')){
     SettingsToRom(pos - '1'); 
     pos = 2;   
   }

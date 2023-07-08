@@ -104,10 +104,10 @@ struct settingSTRUCT{
     int32_t FailSaveValue[4];   // 16   // Temp / Hum / CO2 / DEW / 
     int32_t ValueTooLow[4];     // 16   // Temp / Hum / CO2 / Dew
     int32_t ValueLow[4];        // 16
-    int32_t ValueHigh[2];       // 16
+    int32_t ValueHigh[2];       // 08
     int32_t ValueTooHigh[2];    // 08
     char Name[17];              // 17
-    //                            151
+    //                            143
 }setting;
 
 struct manualSTRUCT{
@@ -164,26 +164,23 @@ void DefaultProbesToRom(){
     EEPROM.put(0, ezoProbe);
 }
 void SettingsToRom(int set){ //(int set){
-    // Save Action Model (2x197 byte / end @ 745)
-    //set *= 197;
-    EEPROM.put(264 + (set * 151), setting);
+    // 143 byte * 3 sets = 429 + 264 = 693(next)
+    EEPROM.put(264 + (set * 143), setting);
 }
 void ManualTimesToRom(int set){
-    // Save temporary/manual times (4x41 byte / end @ 909)
-    //set *= 41;
-    EEPROM.put(866 + set * 41, manual);
+    // 41 byte + 3 sets = 123 + 693 = 816(next)
+    EEPROM.put(693 + set * 41, manual);
 }
 
 void DefaultProbesFromRom(){
     EEPROM.get(0, ezoProbe);
 }
 void SettingsFromRom(int set){ //(int set){
-    //set *= 197;
-   EEPROM.get(244 + set * (151), setting);
+   EEPROM.get(264 + set * (143), setting);
 }
 void ManualTimesFromRom(int set){
     //set *= 41;
-    EEPROM.get(866 + set * 41, manual);
+    EEPROM.get(693 + set * 41, manual);
 }
 
 void OffOutPorts(){

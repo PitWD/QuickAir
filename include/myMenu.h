@@ -1021,7 +1021,7 @@ void PrintManualMenuHlp1(char key, uint16_t value, byte spacer, byte isTime, byt
     
   PrintSpacer(spacer);
 }
-byte GetUserTime16ptr(uint16_t *valIN){
+byte GetUserTime16ptr(uint16_t *valIN, byte isTime){
   // THIS IS STRANGE
   //    Using this just two times has a lower flash use than
   //    if it's used more or less times as replacement for:
@@ -1029,7 +1029,13 @@ byte GetUserTime16ptr(uint16_t *valIN){
   //        setting.FailSaveValue[pos] = GetUserFloat(setting.FailSaveValue[pos]);
   //        pos = 1;
   // THIS IS STRANGE
-  *valIN = GetUserTime(*valIN);
+  if (isTime){
+    *valIN = GetUserTime(*valIN);
+  }
+  else{
+    *valIN = GetUserInt(*valIN);
+  }
+  
   return 1;
 }
 
@@ -1128,16 +1134,15 @@ Start:
   }
   else if (IsKeyBetween(pos, 'a', 'g')){
     // LowTime
-    pos = GetUserTime16ptr(&manual.LowPort[pos - 'a']);
+    pos = GetUserTime16ptr(&manual.LowPort[pos - 'a'], 1);
   }
   else if (IsKeyBetween(pos, 'i', 'k')){
     // HighTime (Values)
-    manual.HighPort[pos - 'h'] = GetUserInt(manual.HighPort[pos - 'h']);
-    pos = 1;
+    pos = GetUserTime16ptr(&manual.HighPort[pos - 'h'], 0);
   }
   else if (pos == 'h' || pos == 'l'){
     // HighTime - Times
-    pos = GetUserTime16ptr(&manual.HighPort[pos - 'h']);
+    pos = GetUserTime16ptr(&manual.HighPort[pos - 'h'], 1);
   }
   else if (IsKeyBetween(pos, 'A', 'G')){
     // Run Single LowTime
@@ -1192,9 +1197,16 @@ Start:
   
 }
 
-void PrintTimingsMenuTime(char key, uint16_t timeIN, byte printSpacer){
+void PrintTimingsMenuTime(char key, uint16_t timeIN, byte printSpacer, byte isTime){
   PrintMenuKeySmallBoldFaint(key, 0, !timeIN);
-  PrintSerTime(timeIN, 0, 1);
+  if (isTime){
+    PrintSerTime(timeIN, 0, 1);
+  }
+  else{
+    IntToIntStr(timeIN, 6, ' ');
+    Serial.print(strHLP);
+    PrintSpaces(2);
+  }
   if (printSpacer){
     PrintSmallSpacer();
   }
@@ -1225,7 +1237,7 @@ void PrintTimingsMenu(){
 
 Start:
 
-  int8_t pos = PrintMenuTop((char*)"- Set Timings -") + 1;
+  int8_t pos = PrintMenuTop((char*)"- Set Timings & Steps -") + 1;
   byte i = 0;
 
   
@@ -1247,19 +1259,21 @@ Start:
       EscLocate(3, pos);
       break;
     }
+
+    byte j = (!i || i > 3);
     
     EscBold(1);
     PrintCentered(Fa(ezoStrTimeType[i]), 9);
     PrintSmallSpacer();
-    PrintTimingsMenuTime(i + 'a', setting.DelayTime[i], 0);
+    PrintTimingsMenuTime(i + 'a', setting.DelayTime[i], 0, j);
     PrintSmallSpacer();
-    PrintTimingsMenuTime(i + 'h', setting.TimeTooLow[i], 1);
-    PrintTimingsMenuTime(i + 'o', setting.TimeLow[i], 1);
+    PrintTimingsMenuTime(i + 'h', setting.TimeTooLow[i], 1, j);
+    PrintTimingsMenuTime(i + 'o', setting.TimeLow[i], 1, j);
     
     if (i < 5){
       // Has High Times
-      PrintTimingsMenuTime(i + 'v', setting.TimeHigh[i], 1);
-      PrintTimingsMenuTime(i + 'A', setting.TimeTooHigh[i], 0);
+      PrintTimingsMenuTime(i + 'v', setting.TimeHigh[i], 1, j);
+      PrintTimingsMenuTime(i + 'A', setting.TimeTooHigh[i], 0, j);
       PrintSmallSpacer();
     }
     else{
@@ -1299,28 +1313,42 @@ Start:
 
   pos = GetUserKey('z', 3);
 
+  byte j = 1;
+
+  switch (pos){
+  case 'b'...'d':
+  case 'i'...'k':
+  case 'p'...'r':
+  case 'w'...'y':
+  case 'B'...'D':
+    j = 0;
+    break;
+  default:
+    break;
+  }
+
   if (pos < 1){
     // Exit & TimeOut
   }
   else if (IsKeyBetween(pos, 'a', 'g')){
     // FailSave
-    pos = GetUserTime16ptr(&setting.DelayTime[pos - 'a']);
+    pos = GetUserTime16ptr(&setting.DelayTime[pos - 'a'], j);
   }
   else if (IsKeyBetween(pos, 'h', 'n')){
     // tooLow
-    pos = GetUserTime16ptr(&setting.TimeTooLow[pos - 'h']);
+    pos = GetUserTime16ptr(&setting.TimeTooLow[pos - 'h'], j);
   }
   else if (IsKeyBetween(pos, 'o', 'u')){
     // Low
-    pos = GetUserTime16ptr(&setting.TimeLow[pos - 'o']);
+    pos = GetUserTime16ptr(&setting.TimeLow[pos - 'o'], j);
   }
   else if (IsKeyBetween(pos, 'v', 'z')){
     // High
-    pos = GetUserTime16ptr(&setting.TimeHigh[pos - 'v']);
+    pos = GetUserTime16ptr(&setting.TimeHigh[pos - 'v'], j);
   }
   else if (IsKeyBetween(pos, 'A', 'E')){
     // tooHigh
-    pos = GetUserTime16ptr(&setting.TimeTooHigh[pos - 'A']);
+    pos = GetUserTime16ptr(&setting.TimeTooHigh[pos - 'A'], j);
   }
   else if (IsKeyBetween(pos, '1', '3')){
     SettingsToRom(pos - '1'); 
@@ -1523,7 +1551,7 @@ Start:
   PrintMenuKeyStd('j');
   Serial.print(F("More...   "));
   PrintMenuKeyStd('k'); Serial.print(F("Values...   "));
-  PrintMenuKeyStd('l'); Serial.print(F("Times...   "));
+  PrintMenuKeyStd('l'); Serial.print(F("Times & Steps...   "));
   PrintMenuKeyStd('m'); Serial.print(F("Manual..."));
 
   PrintShortLine(pos++, 8);

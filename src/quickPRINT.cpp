@@ -102,7 +102,7 @@ byte PrintDashLine(byte posY, byte posX, byte len){
     byte r = 0;
     
     EscBold(bold);
-    
+      
     if (cntDecimalPlaces){
       r = IntToFloatStr(val, cntLeadingZeros, cntDecimalPlaces, leadingChar);
     }

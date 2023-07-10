@@ -63,13 +63,6 @@ void EditAutoAddress(){
     adrDefault = 32;
   }
 }
-void SetAutoAddress(){
-  EzoSetAddress(0, adrDefault, 2);
-  // wait 4 reboots done
-  delay(1000);
-  // Scan new
-  EzoScan();
-}
 
 byte PrintQuickWater(){
   return PrintMenuTop((char*)"- QuickWater 1.04 -");
@@ -131,7 +124,13 @@ byte SwitchAllAndProbeMenu(int8_t pos, byte ezo, byte all){
     break;
   case 'g':
     // Set Addresses
-    SetAutoAddress();
+    EzoSetAddress(ezo, adrDefault, all);
+    // wait 4 reboots done
+    delay(1000);
+    // Scan new
+    EzoScan();
+    
+    // SetAutoAddress();
     // direct back to main
     pos = 0;
     break;

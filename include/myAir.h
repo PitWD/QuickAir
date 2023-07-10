@@ -746,6 +746,7 @@ void EzoScan(){
                             
                             // done
                             ezoCnt++;
+                            my.Cnt = ezoCnt;
                         }
                     } 
                     break;

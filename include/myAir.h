@@ -388,6 +388,10 @@ void EzoSetCal(char *strCmd, byte ezo, byte all, int32_t value, byte calAction){
         if (EzoCheckOnSet(ezo,all, i)){
             if (Fb(ezoHasCal[ezoProbe[ezo].type])){
                 // Has set-able calibration
+                Serial.println();
+                Serial.print(ezoProbe[i].address);
+                Serial.print(":");
+                Serial.println(iicStr);
                 IIcSetStr(ezoProbe[i].address, iicStr, 0);
                 ezoProbe[i].calibrated = 0;
             }

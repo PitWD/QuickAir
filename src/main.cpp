@@ -332,7 +332,7 @@ void loop() {
       avg_RTD = (avg_RTD + avg_TMP) / 2;  // All calculations are based on "ezoRTD",
                                           // but avg of RTD is avg of TMP and RTD
       
-      avg_DEW = avg_DEW - avg_TMP;        // absolute temp of dewing point doesn't matter
+      avg_DEW = avg_RTD - avg_DEW;        // absolute temp of dewing point doesn't matter
                                           // Differenz to actual temp makes the point...
       PrintAVGs(err + 1);
     } 

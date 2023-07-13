@@ -1361,9 +1361,14 @@ byte PrintWaterValsHlp(byte pos, byte posX, byte ezotype, byte lz, byte dp, int 
         }
         else{
           PrintUnit(ezotype, 1, 0, 3);
-          posX -= 14; // eventually ezoHUM
+          if (ezotype == ezoHUM){
+            posX -= 14; // Shift for Temp of HUM
+          }
         }
         j++;        
+      }
+      if (ezotype == ezoHUM){
+        posX -= 76; // Reset for next HUM
       }
       pos++;
     }

@@ -750,9 +750,11 @@ void EzoScan(){
                             EzoStartValues(ezoCnt);
                             EzoWaitValues(ezoCnt);
                             if (EzoGetValues(ezoCnt)){
-                                for (byte i2 = 1; i2 < Fb(ezoValCnt[recEzo]); i2++){
-                                    PrintCharInSpaces(',');
+                                for (byte i2 = 0; i2 < Fb(ezoValCnt[recEzo]); i2++){
                                     Serial.print(ezoValue[ezoCnt][i2]);
+                                    if (i2 < Fb(ezoValCnt[recEzo]) - 1){
+                                        PrintCharInSpaces(',');
+                                    }   
                                 }          
                                 Serial.println(F(""));
                             }

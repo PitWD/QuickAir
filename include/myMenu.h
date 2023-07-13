@@ -778,9 +778,9 @@ byte PrintTempToLevel(byte pos){
 void PrintPortStates(){
 
   // 4 low-ports / 2 high ports
-  byte posOfPort[] = {7, 38, 54, 71, 9, 40};
+  byte posOfPort[] = {7, 38, 53, 69, 9, 40};
   // Three "analog" values
-  byte posOfVal[] = {15, 20, 26};
+  byte posOfVal[] = {15, 20, 25};
 
   static byte lastVal[9];
   byte isChanged = 0;
@@ -836,20 +836,20 @@ void PrintPortStates(){
     }
 
     // Loop the Analog Ports
+    
     for (byte i = 6; i < 9; i++){
       // Analog-Ports
-      EscLocate(posOfPort[i], myLastLine);
+      EscLocate(posOfVal[i - 6], myLastLine);
       SetAvgColorEZO(ezoRTD);
       EscBold(1);
       Serial.print(lastVal[i]);
       EscColor(0);
       EscBold(0);
       Serial.print(F("~"));
-      EscCursorLeft(2);
+      EscCursorLeft(3);
       Serial.print(F("~"));
     }
-
-
+    
     portStateFirstRun = 1;
     EscBoldColor(0);
   }
@@ -1382,22 +1382,42 @@ void PrintUnit (byte ezotype, byte faint, byte leadingSpaces, byte trailingSpace
 byte PrintWaterValsHlp(byte pos, byte posX, byte ezotype, byte lz, byte dp, int divisor){ //, long *avgExt){
 
   byte posAct = 0;
-  long avg = 0;
+  long avg[] = {0, 0, 0};
 
   for (int i = 0; i < ezoCnt; i++){
     if (ezoProbe[i].type == ezotype){
+      byte j = 0;
       posAct++;
-      EscLocate(posX, pos++);
-      Serial.print(i + 1);
-      Serial.print(F(": "));
-      PrintBoldFloat(ezoValue[i][0] / divisor, lz, dp, ' ');
-      avg += ezoValue[i][0];
-      PrintUnit(ezotype, 1, 0, 3);
+      avg[0] += ezoValue[i][0];
+      avg[1] += ezoValue[i][1];
+      avg[2] += ezoValue[i][2];
+      
+      while (!j || (ezotype == ezoHUM && j < 3)){
+        EscLocate(posX, pos);
+        Serial.print(i + 1);
+        Serial.print(F(": "));
+        PrintBoldFloat(ezoValue[i][j] / divisor, lz, dp, ' ');
+        if (ezotype == ezoHUM && j){
+          posX += 45;
+          PrintUnit(2 + j, 1, 0, 3);
+        }
+        else{
+          PrintUnit(ezotype, 1, 0, 3);
+          posX -= 14; // eventually ezoHUM
+        }
+        j++;        
+      }
+      pos++;
     }
   }
 
   if (posAct){
-    avgVal[ezotype] = avg / (long)posAct;
+    avgVal[ezotype] = avg[0] / (long)posAct;
+    if (ezotype == ezoHUM){
+      // Humidity has three Values...
+      avg_TMP = avg[1] / (long)posAct;
+      avg_DEW = avg[2] / (long)posAct;
+    }
   }
 
   return posAct;
@@ -1420,16 +1440,16 @@ byte PrintWaterVals(byte pos){
   byte posMax = 0;
   byte posAct = 0;
 
-  byte posX[] = {4, 17, 29, 42, 54, 69};
-  byte lz[] = {2, 4, 2, 4, 3, 3};
+  byte posX[] = {4, 32, 48};
+  byte lz[] = {3, 3, 4};
   byte dp;
   int16_t divisor;
 
-  for (byte i = 0; i < 6; i++){
+  for (byte i = 0; i < 3; i++){
 
     dp = 2;
     divisor = 1;
-    if (i == 1){
+    if (i == ezoCO2){
       dp = 0;
       divisor = 1000;
     }
@@ -1453,14 +1473,15 @@ void PrintAVGsHLP(byte type, byte posX, byte posY, byte preDot, byte printUnit){
 byte PrintAVGs(byte pos){
 
   PrintAVGsHLP(ezoRTD, 14, pos, 3, 1);  
+  PrintAVGsHLP(ezoHUM, 35, pos, 3, 1);  
 
-  SetAvgColorEZO(ezoHUM);
+/*  SetAvgColorEZO(ezoHUM);
   EscLocate(37, pos);
   PrintBoldInt(avg_HUM / 1000, 3, ' ');
   PrintUnit(ezoHUM, 0, 0, 3);
-
+*/
   SetAvgColorEZO(ezoCO2);
-  EscLocate(50, pos);
+  EscLocate(51, pos);
   PrintBoldInt(avg_CO2 / 1000, 4, ' ');
   PrintUnit(ezoCO2, 0, 0, 3);
 

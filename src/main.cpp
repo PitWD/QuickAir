@@ -327,6 +327,13 @@ void loop() {
     if (EzoDoNext() == 1){
       // All read
       err = PrintWaterVals(5);
+
+      // Correct AVGs
+      avg_RTD = (avg_RTD + avg_TMP) / 2;  // All calculations are based on "ezoRTD",
+                                          // but avg of RTD is avg of TMP and RTD
+      
+      avg_DEW = avg_DEW - avg_TMP;        // absolute temp of dewing point doesn't matter
+                                          // Differenz to actual temp makes the point...
       PrintAVGs(err + 1);
     } 
   }

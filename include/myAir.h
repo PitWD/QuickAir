@@ -279,12 +279,17 @@ void EzoSetName(char *strIN, byte ezo, byte all, byte autoName){
                 iicStr[len] = cnt[ezoProbe[i].type] + 48;
                 iicStr[len + 1] = 0;
             }
+
+            Serial.println();
+            Serial.print(ezoProbe[i].address);
+            Serial.print(":");
+            Serial.println(iicStr);
             
             if (IIcSetStr(ezoProbe[i].address, iicStr, 1) > 0){
                 strcpy(ezoProbe[i].name, &iicStr[5]);
             }               
         }
-        
+        delay(333);
         // No clue why - but a second 0 is needed... otherwise module go kind of crazy - sometimes...
         Wire.beginTransmission(ezoProbe[i].address);
         Wire.write(0);

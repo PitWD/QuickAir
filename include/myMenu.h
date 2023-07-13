@@ -64,8 +64,8 @@ void EditAutoAddress(){
   }
 }
 
-byte PrintQuickWater(){
-  return PrintMenuTop((char*)"- QuickWater 1.04 -");
+byte PrintQuickAir(){
+  return PrintMenuTop((char*)"- QuickAir 1.00 -");
 }
 
 byte PrintAllMenuOpt1(byte pos){
@@ -721,48 +721,6 @@ Start:
   
 }
 
-/*
-byte CorrectType(byte i){
-    // Correct type for the three times EC
-    if (i == 2){
-      return 1;
-    }
-    else if (i > 2){
-      return i - 2;
-    }
-    return i;
-    // type = (i == 2) ? 1 : ((i > 2) ? (type - 2) : type);
-}
-
-byte CorrectForRepeat(byte i){
-  if (i < 2){
-    // set repeat for temp & 1st EC high port
-    return i + 8;
-  }
-  else if (i == 4){
-    // set repeat for pH high port
-    return 10;
-  }
-  else if (i == 7){
-    // set repeat for level high port
-    return 11;
-  }
-  return i;
-}
-byte CorrectFromRepeat(byte i){
-  // set back i from high-port
-  if (i == 11){
-    return 7;
-  }
-  else if (i == 10){
-    return 4;
-  }
-  else if (i > 7){
-    return i - 8;
-  }
-  return i;
-}
-*/
 
 byte PrintTempToLevel(byte pos){
   EscBold(1);
@@ -1475,11 +1433,6 @@ byte PrintAVGs(byte pos){
   PrintAVGsHLP(ezoRTD, 14, pos, 3, 1);  
   PrintAVGsHLP(ezoHUM, 35, pos, 3, 1);  
 
-/*  SetAvgColorEZO(ezoHUM);
-  EscLocate(37, pos);
-  PrintBoldInt(avg_HUM / 1000, 3, ' ');
-  PrintUnit(ezoHUM, 0, 0, 3);
-*/
   SetAvgColorEZO(ezoCO2);
   EscLocate(51, pos);
   PrintBoldInt(avg_CO2 / 1000, 4, ' ');
@@ -1495,7 +1448,7 @@ void PrintLoopMenu(){
 
   EscCls();
   EscInverse(1);
-  byte pos = PrintQuickWater();
+  byte pos = PrintQuickAir();
   EscInverse(0);
   pos++;
 
@@ -1533,7 +1486,7 @@ void PrintMainMenu(){
 
 Start:
 
-  int pos = PrintQuickWater();
+  int pos = PrintQuickAir();
   
   uint32_t hlpTime = 0;
 

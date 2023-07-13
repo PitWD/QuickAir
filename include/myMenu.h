@@ -1399,7 +1399,7 @@ byte PrintWaterValsHlp(byte pos, byte posX, byte ezotype, byte lz, byte dp, int 
         PrintBoldFloat(ezoValue[i][j] / divisor, lz, dp, ' ');
         if (ezotype == ezoHUM && j){
           posX += 45;
-          PrintUnit(2 + j, 1, 0, 3);
+          PrintUnit(5 - j, 1, 0, 3);
         }
         else{
           PrintUnit(ezotype, 1, 0, 3);

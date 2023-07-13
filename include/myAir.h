@@ -28,8 +28,8 @@ static byte ezoCnt = 0;
 #define ezoRTD 0
 #define ezoHUM 1    // Hardware has Temp & DEW, too !
 #define ezoCO2 2
-#define ezoTMP 3    // No real Hardware - Temp from HUM
-#define ezoDEW 4    // No real Hardware - Dew from HUM
+#define ezoDEW 3    // No real Hardware - Dew from HUM
+#define ezoTMP 4    // No real Hardware - Temp from HUM
 
 const char ezoStrType_0[] PROGMEM = "RTD";
 const char ezoStrType_1[] PROGMEM = "HUM";
@@ -147,8 +147,8 @@ long avgVal[5]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define avg_RTD avgVal[0]
 #define avg_HUM avgVal[1]
 #define avg_CO2 avgVal[2]
-#define avg_TMP avgVal[3]
-#define avg_DEW avgVal[4]
+#define avg_DEW avgVal[3]
+#define avg_TMP avgVal[4]
 
 
 #define CAL_RTD_RES -1         // Value for Reset
@@ -215,9 +215,13 @@ void SetAvgColor(long avg, long tooLow, long low, long high, long tooHigh){
 
 // #define SetAvgColorEZO(avgVal, ezoType) SetAvgColor(avgVal, tooLow[ezoType], low[ezoType], high[ezoType], tooHigh[ezoType])
 void SetAvgColorEZO(byte ezoType){
-    // - 46 Flash (5x used)
-    // +128 Ram
-    SetAvgColor(avgVal[ezoType], setting.ValueTooLow[ezoType], setting.ValueLow[ezoType], setting.ValueHigh[ezoType], setting.ValueTooHigh[ezoType]);
+    if (ezoType > 1){
+        // CO2 & DEW having no High / tooHigh values
+        SetAvgColor(avgVal[ezoType], setting.ValueTooLow[ezoType], setting.ValueLow[ezoType], 9999999, 9999999);
+    }
+    else{
+        SetAvgColor(avgVal[ezoType], setting.ValueTooLow[ezoType], setting.ValueLow[ezoType], setting.ValueHigh[ezoType], setting.ValueTooHigh[ezoType]);
+    }  
 }
 
 char EzoStartValues(byte ezo){

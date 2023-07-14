@@ -30,6 +30,7 @@ static byte ezoCnt = 0;
 #define ezoCO2 2
 #define ezoDEW 3    // No real Hardware - Dew from HUM
 #define ezoTMP 4    // No real Hardware - Temp from HUM
+#define ezoDewVal 5 // Value on Hardware (Temp - DewOnHardware) = ezoDEW (val for calculations)
 
 const char ezoStrType_0[] PROGMEM = "RTD";
 const char ezoStrType_1[] PROGMEM = "HUM";
@@ -143,12 +144,13 @@ uint32_t tooHighSince[2];
 // Time of last action 
 uint32_t lastAction[7];
 
-long avgVal[5]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
+long avgVal[6]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define avg_RTD avgVal[0]
 #define avg_HUM avgVal[1]
 #define avg_CO2 avgVal[2]
 #define avg_DEW avgVal[3]
 #define avg_TMP avgVal[4]
+#define avg_DewVal avgVal[5]
 
 
 #define CAL_RTD_RES -1         // Value for Reset
@@ -567,6 +569,12 @@ int8_t EzoDoNext(){
         errInfo[1] = 'D';
         errCnt = ezoAct;
         err = - 1;
+        // Replace missing Probe-Value(s) with actual AVG
+        ezoValue[ezoAct][0] = avgVal[ezoProbe[ezoAct].type];
+        if (ezoProbe[ezoAct].type == ezoHUM){
+            ezoValue[ezoAct][1] = avg_TMP;
+            ezoValue[ezoAct][2] = avg_DewVal;
+        }
       }
       else{
         // errCnt = ezoAct;
@@ -591,12 +599,12 @@ int8_t EzoDoNext(){
         }
     }
     else{
-      // Next Module  
+      // Next Action 
       ezoAction++;
     }
 
     if (err < 0){
-        PrintErrorOK(-1, strlen(errInfo), errInfo);
+        PrintErrorOK(-1, strlen(errInfo), errInfo);        
         return -1;
     }
     else{

@@ -28,7 +28,7 @@ Untested right now, but terminal-apps for mobile phones will be able to controls
 
 - All water specific sensors/modules from <a href="https://atlas-scientific.com/"> Atlas-Scientific</a> are supported.
 
-- On a 328-Arduino, **CannaBreezy** can manage up to 10 of those Atlas sensors/modules. One 4-point level-sensor is on board of a 328.
+- On a 328-Arduino, **CannaBreezy** can manage up to 12 of those Atlas sensors/modules. Three configurable "stepper" for ventilators on board.
 
 <br>
 

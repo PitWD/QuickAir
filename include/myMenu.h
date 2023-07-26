@@ -769,14 +769,16 @@ void PrintPortStates(){
       // Low-Ports
       EscLocate(posOfPort[i], myLastLine);
       if (lastVal[i]){
-        EscBoldColor(fgBlue);
+        EscBold(1);
+        SetAvgColorEZO(i);
         Serial.print(F(">"));
         EscFaint(1);
       }
       else{
         EscFaint(1);
         Serial.print(F(">"));
-        EscBoldColor(fgGreen);
+        EscBold(1);
+        SetAvgColorEZO(i);
       }
       Serial.print(F("~"));
     }
@@ -784,8 +786,9 @@ void PrintPortStates(){
       // High-Ports
       EscLocate(posOfPort[i], myLastLine);
       if (lastVal[i]){
-        EscBoldColor(fgYellow);
-        Serial.print(F("<"));        
+        EscBold(1);
+        SetAvgColorEZO(i - 4);
+        Serial.print(F("<"));
         EscCursorLeft(2);
         EscFaint(1);
         Serial.print(F("~"));
@@ -801,8 +804,8 @@ void PrintPortStates(){
     for (byte i = 6; i < 9; i++){
       // Analog-Ports
       EscLocate(posOfVal[i - 6], myLastLine);
-      SetAvgColorEZO(ezoRTD);
       EscBold(1);
+      SetAvgColorEZO(ezoRTD);
       Serial.print(lastVal[i]);
       EscColor(0);
       EscBold(0);

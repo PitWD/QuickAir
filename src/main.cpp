@@ -85,15 +85,15 @@ uint32_t ValidTimeSince(uint32_t valIN){
   }
   return myTime - valIN;
 }
-uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte i, byte isHighPort, byte *backSet){
+uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte timeID, byte i, byte isHighPort, byte *backSet){
 
   uint32_t r = valIN;
   *backSet = 0;
 
   // If something is OnAction
-  if (ValidTimeSince(valIN) > setting.DelayTime[i]){
+  if (ValidTimeSince(valIN) > setting.DelayTime[timeID]){
     // Action Valid
-    if ((ValidTimeSince(valIN) - setting.DelayTime[i]) > actionTime){
+    if ((ValidTimeSince(valIN) - setting.DelayTime[timeID]) > actionTime){
       // ActionTime done
       lastAction[i] = myTime;
       r = 0;
@@ -107,44 +107,17 @@ uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte i, byte isHighPor
     // NoAction
   }
   
+  i += 2;     // Port to set (if low)
   // Port 2   heat (RTD low/tooLow)
   // Port 3   humidify (HUM low/tooLow)
   // Port 4   raise CO2 (CO2 low/tooLow)
   // Port 5   heat or dry (DEW close/tooClose)
+  if (isHighPort){
+    i += 4;
+  }
   // Port 6   cool (RTD high/tooHigh)
   // Port 7   dry (HUM high/tooHigh)
 
-  if (isHighPort){
-    switch (i){
-    case 0:
-      // RTD
-      i = 6;
-      break;
-    case 4:
-      // HUM
-      i = 7;
-      break;
-    default:
-      i = 0;
-      break;
-    }
-  }
-  else{
-    // LowPort
-    switch (i){
-    case 0:
-      // RTD
-      i = 2;
-      break;
-    case 4 ... 6:
-      // HUM / CO2 / DEW
-      i -= 1;
-      break;
-    default:
-      i = 0;
-      break;
-    }
-  }
   
   if (i){
     digitalWrite(i, *backSet);
@@ -170,24 +143,21 @@ void loop() {
 
     // Check High/Low of AVGs 
     // compare timeOuts with timing-setting
-    //for (byte i = 0; i < 6; i++){
-    for (byte i = 0; i < 7; i++){
+    for (byte i = 0; i < 4; i++){
 
-      byte type;      
-      // Correct type for the four times EC
-      if (i < 4){
-        type = ezoRTD;
-      }
-      else{
-        type = i - 3;
+      // MemPos of *Time* in setting...
+      byte timeID = 0;      
+      if (i){
+        timeID += 4;
       }
 
       // Check On needed/pending low-actions
       preToo = tooLowSince[i];
-      tooLowSince[i] = checkAction(tooLowSince[i], setting.TimeTooLow[i], i, 0, &err);
+      tooLowSince[i] = checkAction(tooLowSince[i], setting.TimeTooLow[timeID], timeID, i, 0, &err);
       if (!err){
         // TooLow isn't in Action...
-        lowSince[i] = checkAction(lowSince[i], setting.TimeLow[i], i, 0, &err);
+
+        lowSince[i] = checkAction(lowSince[i], setting.TimeLow[timeID], timeID, i, 0, &err);
         //if (preToo != tooLowSince[i]){ 
         if (preToo != tooLowSince[i]){ 
           // after finished tooXYZ-Action - reset lowSince, too          
@@ -206,32 +176,19 @@ void loop() {
       }
             
       // we've just 2 high-actions... (RTD, HUM)
-      byte j;
-      switch (i){
-      case 0 ... 3:
-        // All Temperatures
-        j = ezoRTD;
-      case 4:
-        // Humidity
-        j = ezoHUM;
-        break;
-      default:
-        j = 0;
-        break;
-      }          
-
-      // Check On needed/pending high-actions
-      preToo = tooHighSince[j];
-
-      if (j || (!j && !i)){
+      if (!i || i == ezoHUM){
         
-        tooHighSince[j] = checkAction(tooHighSince[j], setting.ValueTooHigh[j], i, 1, &err);
+        // Check On needed/pending high-actions
+        preToo = tooHighSince[i];
+
+        tooHighSince[i] = checkAction(tooHighSince[i], setting.TimeTooHigh[timeID], timeID, i, 1, &err);
         if (!err){
           // TooHigh isn't in Action...
-          highSince[j] = checkAction(highSince[j], setting.ValueHigh[j], i, 1, &err);
-          if (preToo != tooHighSince[j]){ 
+          highSince[i] = checkAction(highSince[i], setting.TimeHigh[timeID], timeID, i, 1, &err);
+          
+          if (preToo != tooHighSince[i]){ 
             // after finished tooXYZ-Action - reset highSince, too
-            highSince[j] = 0;
+            highSince[i] = 0;
             err = 0;
           }
           if (err){
@@ -245,15 +202,27 @@ void loop() {
           // something is in action
         }
       }
+
+      int32_t highToUse;
+      int32_t tooHighToUse;
+      
+      // we've just 2 high-actions... (RTD, HUM)
+      if (!i || i == ezoHUM){
+        highToUse = setting.ValueHigh[i];
+        tooHighToUse = setting.ValueTooHigh[i];
+      }
+      else{
+        // simulate very high "(too)HighValues" for CO2 & DEW
+        highToUse = 999999999;
+        tooHighToUse = highToUse;
+      }
       
       // Set / Reset Since-Variables depending on high/low state...
-      switch (GetAvgState(avgVal[type], setting.ValueTooLow[type], setting.ValueLow[type], setting.ValueHigh[type], setting.ValueTooHigh[type])){
+      switch (GetAvgState(avgVal[i], setting.ValueTooLow[i], setting.ValueLow[i], highToUse, tooHighToUse)){
       case fgCyan:
         // tooLow
-        if (i < 2){
-          highSince[i] = 0;
-          tooHighSince[i] = 0;
-        }
+        highSince[i] = 0;
+        tooHighSince[i] = 0;
         okSince[i] = 0;
         if (!tooLowSince[i]){
           // 1st time tooLow recognized
@@ -266,10 +235,8 @@ void loop() {
         break;
       case fgBlue:
         // Low
-        if (i < 2){
-          highSince[i] = 0;
-          tooHighSince[i] = 0;
-        }
+        highSince[i] = 0;
+        tooHighSince[i] = 0;
         tooLowSince[i] = 0;
         okSince[i] = 0;
         if (!lowSince[i]){
@@ -282,15 +249,13 @@ void loop() {
         lowSince[i] = 0;
         tooLowSince[i] = 0;
         okSince[i] = 0;
-        if (i < 2){
-          if (!tooHighSince[i]){
-            // 1st time tooLow recognized
-            tooHighSince[i] = myTime;
-          }
-          if (!highSince[i]){
-            // If tooXYZ is active... regular state becomes active too
-            highSince[i] = tooHighSince[i];
-          }
+        if (!tooHighSince[i]){
+          // 1st time tooLow recognized
+          tooHighSince[i] = myTime;
+        }
+        if (!highSince[i]){
+          // If tooXYZ is active... regular state becomes active too
+          highSince[i] = tooHighSince[i];
         }
         break;
       case fgYellow:
@@ -299,11 +264,9 @@ void loop() {
         tooLowSince[i] = 0;
         tooHighSince[i] = 0;
         okSince[i] = 0;
-        if (i < 2){
-          if (!highSince[i]){
-            // 1st time High recognized
-            highSince[i] = myTime;
-          }
+        if (!highSince[i]){
+          // 1st time High recognized
+          highSince[i] = myTime;
         }
         break;
       default:
@@ -311,10 +274,8 @@ void loop() {
         // Reset ...Since Vars
         tooLowSince[i] = 0;
         lowSince[i] = 0;
-        if (i < 2){
-          highSince[i] = 0;
-          tooHighSince[i] = 0;
-        }
+        highSince[i] = 0;
+        tooHighSince[i] = 0;
         if (!okSince[i]){
           okSince[i] = myTime;
         }

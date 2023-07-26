@@ -107,7 +107,7 @@ uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte timeID, byte i, b
     // NoAction
   }
   
-  i += 2;     // Port to set (if low)
+  i += 2;     // Port to set (if isLowPort)
   // Port 2   heat (RTD low/tooLow)
   // Port 3   humidify (HUM low/tooLow)
   // Port 4   raise CO2 (CO2 low/tooLow)
@@ -117,11 +117,8 @@ uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte timeID, byte i, b
   }
   // Port 6   cool (RTD high/tooHigh)
   // Port 7   dry (HUM high/tooHigh)
-
   
-  if (i){
-    digitalWrite(i, *backSet);
-  }
+  digitalWrite(i, *backSet);
 
   return r;
 

@@ -47,6 +47,8 @@
 
 byte IsSerialSpeedValid(uint32_t speed);
 
+byte GetONEchar();
+
 #if SMALL_GetUserVal
   byte IntToStr_SMALL(long val, char cntLeadingChar, char leadingChar);
   #define IntToIntStr(val, cntLeadingChar, leadingChar) IntToStr_SMALL(val, cntLeadingChar, leadingChar)

@@ -68,7 +68,7 @@ void EditAutoAddress(){
 }
 
 byte PrintQuickAir(){
-  return PrintMenuTop((char*)"- QuickAir 1.02 -");
+  return PrintMenuTop((char*)"- QuickAir 1.03 -");
 }
 
 byte PrintAllMenuOpt1(byte pos){

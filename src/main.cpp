@@ -58,6 +58,11 @@ void setup() {
     avgVal[i] = setting.FailSaveValue[i];
   }    
 
+  // Stepper...
+  for (byte i = 0; i < 3; i++){
+    StepperWrite(i, stepperStartStep(i));
+  }
+
 // EMERGENCY-BOOT: EzoScan(); my.Default = 0;
 
   if (my.Default == 1 && my.Cnt && my.Cnt <= EZO_MAX_PROBES){ 
@@ -139,7 +144,7 @@ void loop() {
     PrintLoopTimes();    
 
     // Check High/Low of AVGs 
-    // compare timeOuts with timing-setting
+    // compare action-ports timeOuts with timing-setting
     for (byte i = 0; i < 4; i++){
 
       // MemPos of *Time* in setting...
@@ -215,8 +220,9 @@ void loop() {
       }
       
       // Set / Reset Since-Variables depending on high/low state...
-      switch (GetAvgState(avgVal[i], setting.ValueTooLow[i], setting.ValueLow[i], highToUse, tooHighToUse)){
-      case fgCyan:
+      avgState[i] = ColorStateToStepState(GetAvgState(avgVal[i], setting.ValueTooLow[i], setting.ValueLow[i], highToUse, tooHighToUse));
+      switch (avgState[i]){
+      case -2:
         // tooLow
         highSince[i] = 0;
         tooHighSince[i] = 0;
@@ -230,7 +236,7 @@ void loop() {
           lowSince[i] = tooLowSince[i];
         }  
         break;
-      case fgBlue:
+      case -1:
         // Low
         highSince[i] = 0;
         tooHighSince[i] = 0;
@@ -241,7 +247,7 @@ void loop() {
           lowSince[i] = myTime;
         }
         break;
-      case fgRed:
+      case 2:
         // tooHigh
         lowSince[i] = 0;
         tooLowSince[i] = 0;
@@ -255,7 +261,7 @@ void loop() {
           highSince[i] = tooHighSince[i];
         }
         break;
-      case fgYellow:
+      case 1:
         // High
         lowSince[i] = 0;
         tooLowSince[i] = 0;
@@ -281,6 +287,11 @@ void loop() {
       
     }
 
+    // Check On Steper Actions...
+    for (byte i = 0; i < 3; i++){
+      CheckOnStep(i);
+    }
+    
     //Read EZO's
     if (EzoDoNext() == 1){
       // All read

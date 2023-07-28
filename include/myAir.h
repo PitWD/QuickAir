@@ -144,6 +144,24 @@ uint32_t tooHighSince[4];
 // Time of last action 
 uint32_t lastAction[4];
 
+// Steppers (Exhaust / Intake / Circulation)
+typedef struct stepperSTRUCT{
+
+    byte Value;
+    uint32_t TimeSet;   // Last time the Value got set
+    char TempState;     // Temp When Value got set
+                        // -2 = tooLow
+                        // -1 = Low
+                        //  0 = OK
+                        //  1 = High
+                        //  2 = tooHigh
+}stepperSTRUCT;
+stepperSTRUCT stepper[3];
+
+#define stepExID 0;
+#define stepInID 1;
+#define stepCircID 2;
+
 long avgVal[6]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define avg_RTD avgVal[0]
 #define avg_HUM avgVal[1]
@@ -152,6 +170,11 @@ long avgVal[6]; //  = {21000L, 1250000L, 6000L, 225000L, 99999L, 66666L};
 #define avg_TMP avgVal[4]
 #define avg_DewVal avgVal[5]
 
+char avgState[4];
+#define avgState_RTD avgState[0]
+#define avgState_HUM avgState[1]
+#define avgState_CO2 avgState[2]
+#define avgState_DEW avgState[3]
 
 #define CAL_RTD_RES -1         // Value for Reset
 #define CAL_RTD_LOW 0          // Value for LowPoint
@@ -223,6 +246,101 @@ void SetAvgColorEZO(byte ezoType){
     }
     else{
         SetAvgColor(avgVal[ezoType], setting.ValueTooLow[ezoType], setting.ValueLow[ezoType], setting.ValueHigh[ezoType], setting.ValueTooHigh[ezoType]);
+    }  
+}
+
+char ColorStateToStepState(byte colorState){
+    switch (colorState){
+        case fgCyan:
+            return - 2;
+            break;
+        case fgBlue:
+            return - 1;
+            break;
+        case fgYellow:
+            return 1;
+            break;
+        case fgRed:
+            return 2;
+            break;
+        default:
+            return 0;
+            break;
+    }
+}
+
+#define stepperMinStep(stepperID) setting.TimeHigh[stepperID + 1]
+#define stepperMaxStep(stepperID) setting.TimeTooHigh[stepperID + 1]
+#define stepperUpDelay(stepperID) setting.DelayTime[stepperID + 1]
+#define stepperDownDelay(stepperID) setting.TimeTooLow[stepperID + 1]
+#define stepperStartStep(stepperID) setting.TimeLow[stepperID + 1]
+
+void StepperWrite(byte stepperID, byte value){
+    
+    if (value < stepperMinStep(stepperID)){
+        value = stepperMinStep(stepperID);
+    }
+    else if (value > stepperMaxStep(stepperID)){
+        value = stepperMaxStep(stepperID);
+    }
+    stepper[stepperID].Value = value;
+    stepper[stepperID].TimeSet = myTime;
+    stepper[stepperID].TempState = avgState_RTD;
+}
+
+#define StepperUp(stepperID) StepperWrite(stepperID, stepper[stepperID].Value + 1)
+
+void StepperDown(byte stepperID){
+    if (stepper[stepperID].Value){
+        stepper[stepperID].Value--;
+    }
+    StepperWrite(stepperID, stepper[stepperID].Value);
+}
+void CheckOnStep(byte stepperID){
+        
+    char tempChange = 0;    // If temp was falling/raising
+        
+    byte stepUpAllowed = (myTime > stepper[stepperID].TimeSet + stepperUpDelay(stepperID));
+    byte stepDownAllowed = (myTime > stepper[stepperID].TimeSet + stepperDownDelay(stepperID));
+
+    if (avgState_RTD > stepper[stepperID].TempState){
+        // Temp is raising    
+        tempChange = 1;
+    }
+    else if (avgState_RTD < stepper[stepperID].TempState){
+        // Temp is falling    
+        tempChange = -1;
+    }
+    else{
+        // Temp is stable
+    }
+
+    if (avgState_DEW < 0){
+        // (too) close to the dewing point
+        if (stepUpAllowed){
+            StepperUp(stepperID);
+        }
+    }
+    else if (avgState_RTD < 0){
+        // cold
+        if (!(tempChange > 0)){
+            // lower step
+            if (stepDownAllowed){
+                StepperDown(stepperID);
+            }
+        }
+    }
+    else if (avgState_RTD > 0){
+        // hot
+        if (!(tempChange < 0)){
+            // raise step
+            if (stepUpAllowed){
+                StepperUp(stepperID);
+            }
+        }
+    }
+    else{
+        // temp ok
     }  
 }
 

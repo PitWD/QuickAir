@@ -757,7 +757,7 @@ void PrintPortStates(){
   }
   // Check on "analog" Port_Changes
   for (byte i = 6; i < 9; i++){
-    byte val = 3;//stepRead(i - 6);
+    byte val = stepper[i - 6].Value;
     if (val != lastVal[i]){
       lastVal[i] = val;
       isChanged = 1;
@@ -1182,7 +1182,7 @@ void PrintTimingsMenu(){
 //   RTD    | a)         | h)         | o)         | v)         | A)         |
 //----------------------------------------------------------------------------
 
-//          |     OK     |   tooLow   |    Low     |    High    |  tooHigh   |
+//          |   UpDelay  |  DownDelay |  StartStep |   MinStep  |   MaxStep  |
 //----------------------------------------------------------------------------
 //  Exhaust | b)         | i)         | p)         | w)         | B)         |
 //  Intake  | c)         | j)         | q)         | x)         | C)         |
@@ -1225,9 +1225,9 @@ Start:
     EscBold(1);
     PrintCentered(Fa(ezoStrTimeType[i]), 9);
     PrintSmallSpacer();
-    PrintTimingsMenuTime(i + 'a', setting.DelayTime[i], 0, j);
+    PrintTimingsMenuTime(i + 'a', setting.DelayTime[i], 0, 1);
     PrintSmallSpacer();
-    PrintTimingsMenuTime(i + 'h', setting.TimeTooLow[i], 1, j);
+    PrintTimingsMenuTime(i + 'h', setting.TimeTooLow[i], 1, 1);
     PrintTimingsMenuTime(i + 'o', setting.TimeLow[i], 1, j);
     
     if (i < 5){
@@ -1250,9 +1250,8 @@ Start:
       pos++;
       EscLocate(12, pos++);
       PrintSpacer(1);
-      Serial.print(F(" OK-Step  "));
-      PrintFlexSpacer(0, 2);
-      PrintLowToHigh();
+      Serial.print(F("  UpDelay  |  DownDelay |  StartStep |   MinStep  |   MaxStep"));
+      PrintFlexSpacer(2, 0);
       pos = PrintLine(pos++, 3, 76);
       break; 
     case 3: 
@@ -1292,11 +1291,11 @@ Start:
   }
   else if (IsKeyBetween(pos, 'a', 'g')){
     // FailSave
-    pos = GetUserTime16ptr(&setting.DelayTime[pos - 'a'], j);
+    pos = GetUserTime16ptr(&setting.DelayTime[pos - 'a'], 1);
   }
   else if (IsKeyBetween(pos, 'h', 'n')){
     // tooLow
-    pos = GetUserTime16ptr(&setting.TimeTooLow[pos - 'h'], j);
+    pos = GetUserTime16ptr(&setting.TimeTooLow[pos - 'h'], 1);
   }
   else if (IsKeyBetween(pos, 'o', 'u')){
     // Low

@@ -115,24 +115,32 @@ struct settingSTRUCT{
 }setting;
 
 struct manualSTRUCT{
-    // 41 Bytes x doesn't matter
-    // m) SomeBlaBlaName     |     Low    |     High   |   Value    |
-    //---------------------------------------------------------------
-    //          RTD          | a)[0+2]    | h)[4]      |
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    //         Exhaust       | b)         |            | i)         |
-    //         Intake        | c)         |            | j)         |
-    //         Circ.         | d)         |            | k)         |
-    //---------------------------------------------------------------
-    //          HUM          | e)[1]      | l)[5]      |
-    //--------------------------------------------------
-    //          CO2          | f)[2]      | 
-    //-------------------------------------
-    //          DEW          | g)[3]      |
+    //                     |    State   |    Value    |   tempTime   |
+    //----------------------------------------------------------------
+    //          RTD >>     | a)         | j)          | s)           |
+    //          HUM >>     | b)         | k)          | t)           |
+    //          CO2 >>     | c)         | l)          | u)           |
+    //          DEW >>     | d)         | m)          | v)           |
+    //----------------------------------------------------------------
+    //          << RTD     | e)         | n)          | w)           |
+    //          << HUM     | f)         | o)          | x)           |
+    //----------------------------------------------------------------
+    //         Exhaust     | g)         | p)          | y)           | 
+    //         Intake      | h)         | q)          | z)           | 
+    //      Circulation    | i)         | r)          | A)           | 
+    //----------------------------------------------------------------
+
     uint16_t LowPort[7];    // 14            // Heat / Exh. / Intake / Circ. / Hum / Add(CO2) / Heat(DEW)
     uint16_t HighPort[5];   // 10            // Cool / Val  /   Val  /  Val  / Dry 
     char Name[17];          // 17
     //                      // 41
+    byte State;             // 0 = automatic
+                            // 1 = permanent
+                            // 2 = temporary
+    byte Value;             // 0/1 for action ports
+                            // 0-n for stepper ports
+    uint32_t TempTime;      // End Of TempTime
+
 }manual;
 
 // Counter for Low/High
@@ -316,7 +324,7 @@ void CheckOnStep(byte stepperID){
     }
 
     if (avgState_DEW < 0){
-        // (too) close to the dewing point
+        // (too) close to the dewing point - this dominates over temperature
         if (stepUpAllowed){
             StepperUp(stepperID);
         }

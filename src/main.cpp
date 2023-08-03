@@ -25,7 +25,7 @@ void setup() {
   // put your setup code here, to run once:
 
   myFromRom();
-  ManualTimesFromRom(my.Temporary);
+  ManualFromRom();
   //LowHighValsFromRom(my.Model);
   SettingsFromRom(my.Setting);
 

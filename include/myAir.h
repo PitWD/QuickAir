@@ -43,24 +43,47 @@ PGM_P const ezoStrType[] PROGMEM = {
     ezoStrType_3
 };
 
+const char ezoStrManType_0[] PROGMEM = "RTD >>";
+const char ezoStrManType_1[] PROGMEM = "HUM >>";
+const char ezoStrManType_2[] PROGMEM = "CO2 >>";
+const char ezoStrManType_3[] PROGMEM = "DEW >>";
+const char ezoStrManType_4[] PROGMEM = "<< RTD";
+const char ezoStrManType_5[] PROGMEM = "<< HUM";
+const char ezoStrManType_6[] PROGMEM = "Exhaust";
+const char ezoStrManType_7[] PROGMEM = "Intake";
+const char ezoStrManType_8[] PROGMEM = "Circulation";
+PGM_P const ezoStrManType[] PROGMEM = {
+    ezoStrManType_0,
+    ezoStrManType_1,
+    ezoStrManType_2,
+    ezoStrManType_3,
+    ezoStrManType_4,
+    ezoStrManType_5,
+    ezoStrManType_6,
+    ezoStrManType_7,
+    ezoStrManType_8
+};
 
-// RTD
-const char ezoStrTimeType_1[] PROGMEM = "Exhaust";
-const char ezoStrTimeType_2[] PROGMEM = "Intake";
-const char ezoStrTimeType_3[] PROGMEM = "Circ.";
-// Hum
-// CO2
-// DEW
-PGM_P const ezoStrTimeType[] PROGMEM = {
+const char ezoStrTimeType_3[] = "Circ.";
+PGM_P const ezoStrTimeType[] = {
     ezoStrType_0,
-    ezoStrTimeType_1,
-    ezoStrTimeType_2,
+    ezoStrManType_6,
+    ezoStrManType_7,
     ezoStrTimeType_3,
     ezoStrType_1,
     ezoStrType_2,
-    ezoStrType_3,
+    ezoStrType_3
 };
 
+
+const char ezoStrManState_0[] PROGMEM = "automatic";
+const char ezoStrManState_1[] PROGMEM = "permanent";
+//const char ezoStrManState_2[] PROGMEM = "temporary";
+PGM_P const ezoStrManState[] PROGMEM = {
+    ezoStrManState_0,
+    ezoStrManState_1,
+    //ezoStrManState_2,
+};
 
 const char ezoStrUnit_0[] PROGMEM = "°C";
 const char ezoStrUnit_1[] PROGMEM = "rH%";
@@ -115,33 +138,29 @@ struct settingSTRUCT{
 }setting;
 
 struct manualSTRUCT{
-    //                     |    State   |    Value    |   tempTime   |
-    //----------------------------------------------------------------
-    //          RTD >>     | a)         | j)          | s)           |
-    //          HUM >>     | b)         | k)          | t)           |
-    //          CO2 >>     | c)         | l)          | u)           |
-    //          DEW >>     | d)         | m)          | v)           |
-    //----------------------------------------------------------------
-    //          << RTD     | e)         | n)          | w)           |
-    //          << HUM     | f)         | o)          | x)           |
-    //----------------------------------------------------------------
-    //         Exhaust     | g)         | p)          | y)           | 
-    //         Intake      | h)         | q)          | z)           | 
-    //      Circulation    | i)         | r)          | A)           | 
-    //----------------------------------------------------------------
+    //                     |    State   |    Value    |  tempUntil  |
+    //---------------------------------------------------------------
+    //          RTD >>     | a)         | j)          |             |
+    //          HUM >>     | b)         | k)          |             |
+    //          CO2 >>     | c)         | l)          |             |
+    //          DEW >>     | d)         | m)          |             |
+    //---------------------------------------------------------------
+    //          << RTD     | e)         | n)          |             |
+    //          << HUM     | f)         | o)          |             |
+    //---------------------------------------------------------------
+    //         Exhaust     | g)         | p)          |             | 
+    //         Intake      | h)         | q)          |             | 
+    //      Circulation    | i)         | r)          |             | 
+    //---------------------------------------------------------------
 
-    uint16_t LowPort[7];    // 14            // Heat / Exh. / Intake / Circ. / Hum / Add(CO2) / Heat(DEW)
-    uint16_t HighPort[5];   // 10            // Cool / Val  /   Val  /  Val  / Dry 
-    char Name[17];          // 17
-    //                      // 41
     byte State;             // 0 = automatic
                             // 1 = permanent
-                            // 2 = temporary
     byte Value;             // 0/1 for action ports
                             // 0-n for stepper ports
-    uint32_t TempTime;      // End Of TempTime
+    
 
-}manual;
+}manual[9];
+uint32_t manTempTime[9] = {0,0,0,0,0,0,0,0,0};       // End Of TempTime
 
 // Counter for Low/High
 uint32_t tooLowSince[4];
@@ -201,12 +220,12 @@ void DefaultProbesToRom(){
     EEPROM.put(0, ezoProbe);
 }
 void SettingsToRom(int set){ //(int set){
-    // 143 byte * 3 sets = 429 + 264 = 693(next)
+    // 143 byte * 4 sets = 572 + 264 = 836(next)
     EEPROM.put(264 + (set * 143), setting);
 }
-void ManualTimesToRom(int set){
-    // 41 byte + 3 sets = 123 + 693 = 816(next)
-    EEPROM.put(693 + set * 41, manual);
+void ManualToRom(){
+    // 18 byte 836 = 854(next)
+    EEPROM.put(836 , manual);
 }
 
 void DefaultProbesFromRom(){
@@ -215,9 +234,9 @@ void DefaultProbesFromRom(){
 void SettingsFromRom(int set){ //(int set){
    EEPROM.get(264 + set * (143), setting);
 }
-void ManualTimesFromRom(int set){
+void ManualFromRom(){
     //set *= 41;
-    EEPROM.get(693 + set * 41, manual);
+    EEPROM.get(836, manual);
 }
 
 void OffOutPorts(){

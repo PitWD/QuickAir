@@ -820,151 +820,6 @@ void PrintPortStates(){
 }
 
 
-void RunManualSetting(byte port, byte style){
-
-  struct runManualSTRUCT{
-      uint16_t runTime;
-      uint16_t offset;
-      uint16_t onTime;
-      uint16_t offTime;
-  }manualTiming[9];
-
-  byte idToPort[] = {2, 0, 0, 0, 3, 4, 5, 6, 7};
-
-  int8_t pos = PrintMenuTop((char*)"- RUN Manual -") + 1;
-  EscLocate(3, pos);
-  pos++;
-
-  pos = PrintTempToLevel(pos);
-  PrintLine(pos + 1, 3, 76);    
-
-  // we need this pos in "loop()" / see PrintPortStates()
-  myLastLine = pos;
-  portStateFirstRun = 0;
-
-  // Copy Low & High values to manualTiming array
-  for (byte i = 0; i < 7; i++) {
-    manualTiming[i].runTime = manual.LowPort[i];
-  }
-  // the other 3 highs are "analog" values for their low-times
-    manualTiming[7].runTime = manual.HighPort[0];
-    manualTiming[8].runTime = manual.HighPort[4];
-
-  // Search longest time
-  uint16_t maxTime = 0;
-  for (byte i = 0; i < 9; i++){
-    if ((i == port || port == 255) && manualTiming[i].runTime){
-      // Port is in action...
-      if (manualTiming[i].runTime > maxTime){
-        maxTime = manualTiming[i].runTime;
-      }
-    }
-  }
-  
-  // Calc offset / onTime / offTime
-  for (byte i = 0; i < 9; i++){
-
-    uint16_t repeats = 0;
-
-    if ((i == port || port == 255) && manualTiming[i].runTime){
-
-      // we're in Action and have a time...
-      switch (style){
-      case 0:
-        // Distributed
-
-        repeats = (maxTime / manualTiming[i].runTime);
-        
-        if (repeats > manualTiming[i].runTime){
-          // we can't On/Off shorter than 1sec.
-          repeats = manualTiming[i].runTime;
-        }
-        
-        ReCalc:   // sucking integer resolution need this up & down
-                  // to get total onTime exact but also as distributed as possible
-        manualTiming[i].onTime = manualTiming[i].runTime / repeats;
-        if ((manualTiming[i].onTime * repeats) < manualTiming[i].runTime){
-          // onTime too short - raise onTime (suck - 1)
-          manualTiming[i].onTime++;
-        }
-        if ((manualTiming[i].onTime * repeats) > manualTiming[i].runTime){
-          // onTime too long - lower repeats (suck - 2)
-          if (repeats){
-            repeats--;
-            goto ReCalc;
-          }          
-        }
-
-        manualTiming[i].offTime = (maxTime - manualTiming[i].runTime) / repeats;               
-        manualTiming[i].offset = (maxTime - ((manualTiming[i].onTime + manualTiming[i].offTime) * repeats)) / 2;
-        break;
-      case 1:
-        // Centered
-        repeats = 1;
-        manualTiming[i].onTime = manualTiming[i].runTime;
-        manualTiming[i].offTime = maxTime - manualTiming[i].runTime;
-        manualTiming[i].offset = 0;
-        break;
-      default:
-        break;
-      }
-      if (!manualTiming[i].offset){
-        manualTiming[i].offset = manualTiming[i].offTime / 2;
-      }
-    }
-  }
-
-  // Run times...
-  uint16_t runTime = 0;
-  maxTime++;
-  while (maxTime){
-    if (DoTimer()){
-      // A second is gone...
-
-      maxTime--;
-
-      // Time left as PrintErrOK...
-      PrintSerTime(maxTime, 0, 0); // Time left to strHLP2
-      strcpy(&strHLP2[8], (char*)" left...");
-      PrintErrorOK(0, strlen(strHLP2), strHLP2);
-
-      for (byte i = 0; i < 9; i++){
-
-        byte portState = 0;
-        if ((i == port || port == 255) && manualTiming[i].runTime){
-          // port is valid & timing exist
-
-          if (runTime >= manualTiming[i].offset ){
-            // Offset is expired - calc interval...
-            portState = ((runTime - manualTiming[i].offset) % (manualTiming[i].onTime + manualTiming[i].offTime) < manualTiming[i].onTime);
-          }
-          else{
-            // Offset is still active
-          }
-        }
-        if (i && i < 4){
-          // Exhaust / Intake / Circulation ("analog" - ports)
-        }
-        else{
-          // regular high/low ports
-          digitalWrite(idToPort[i], portState);
-        }        
-      }
-      runTime++;
-
-      PrintLoopTimes();    
-      PrintPortStates();
-
-    }
-    if (Serial.available()){
-      // STOP manual action...
-      Serial.read();
-      maxTime = 0;
-    }
-  }
-  OffOutPorts();
-
-}
 void PrintManualMenuHlp1(char key, uint16_t value, byte spacer, byte isTime, byte key2){
   PrintMenuKeySmallBoldFaint(key, 0, !value);
   if (isTime){
@@ -1002,161 +857,157 @@ byte GetUserTime16ptr(uint16_t *valIN, byte isTime){
   return 1;
 }
 
-void PrintManualMenu(){
+byte PrintManualMenu(){
 
-// m) SomeBlaBlaName     |     Low    |     High   |   Value    |
-//---------------------------------------------------------------
-//          RTD          | a)         | h)         |
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//         Exhaust       | b)         |            | i)         |
-//         Intake        | c)         |            | j)         |
-//         Circ.         | d)         |            | k)         |
-//---------------------------------------------------------------
-//          HUM          | e)         | l)         |
-//--------------------------------------------------
-//          CO2          | f)         | 
-//-------------------------------------
-//          DEW          | g)         |   
+    //                     |    State   |    Value    | tempUntil |
+    //----------------------------------------------------------------
+    //          RTD >>     | a)         | j)          | s) 00:00:00 |
+    //          HUM >>     | b)         | k)          | t)          |
+    //          CO2 >>     | c)         | l)          | u)          |
+    //          DEW >>     | d)         | m)          | v)          |
+    //----------------------------------------------------------------
+    //          << RTD     | e)         | n)          | w)          |
+    //          << HUM     | f)         | o)          | x)          |
+    //----------------------------------------------------------------
+    //         Exhaust     | g)         | p)          | y)          | 
+    //         Intake      | h)         | q)          | z)          | 
+    //      Circulation    | i)         | r)          | A)          | 
+    //----------------------------------------------------------------
+
+  uint32_t tempTime = 900;
 
 Start:
 
   int8_t pos = PrintMenuTop((char*)"- Manual Menu -") + 1;
   byte i = 0;
   
-  EscLocate(5, pos++);
-  PrintMenuKey(i + 'o', 0, '(', ' ', 0, 1, 0);
-  EscColor(fgBlue);
-  PrintCentered(manual.Name, 16);
-  EscColor(0);
-  Serial.print(F(" |       LOW       |      HIGH       |      Value      |"));
-  PrintLine(pos++, 5, 73);
-  byte ecCnt = 0;
+  EscLocate(21, pos++);
+  EscBold(1);
+  Serial.print(F(" |     State     |    Value   |   tempUntil  |"));
+  PrintLine(pos++, 5, 62);
 
-  for (i = 0; i < 7; i++){
+  for (i = 0; i < 9; i++){
 
-    EscLocate(8, pos++);
+    if (!(manTempTime[i] > myTime)){
+      // no temporary something (anymore)
+      manTempTime[i] = 0;
+    }
+
+    EscLocate(5, pos++);
+
     EscBold(1);
-    PrintCentered(Fa(ezoStrTimeType[i]), 17);
+    PrintCentered(Fa(ezoStrManType[i]), 16);
     PrintSpacer(1);
     
-    PrintManualMenuHlp1('a' + i + ecCnt, manual.LowPort[i + ecCnt], 1, 1, 1);
-
-    if (i == 0 || i == 4){
-      // RTD & Hum - High Ports (Time)
-      PrintManualMenuHlp1('h' + i, manual.HighPort[i], 1, 1, 1);
+    PrintMenuKeyStd('a' + i);
+    if (!(manTempTime[i])){
+      Serial.print(Fa(ezoStrManState[manual[i].State]));
     }
-    else if (i > 0 && i < 4){
-      // Exhaust / Intake / Circulation
-      PrintFlexSpacer(15,0);
-      PrintManualMenuHlp1('h' + i, manual.HighPort[i], 1, 0, 0);
+    else{
+      Serial.print(F("temp. ("));
+      if (manual[i].State){
+        Serial.print(F("p)"));
+      }
+      else{
+        Serial.print(F("a)"));
+      }
+      
+      
     }
+    PrintSpacer(1);
 
+    PrintMenuKeyStd('j' + i);
+    PrintInt(manual[i].Value, 6, ' ');
+    PrintSpacer(manTempTime[i] > 0);
+
+    PrintMenuKeyStd('s' + i);
+    EscBold(manTempTime[i] > 0);
+    EscFaint(manTempTime[i] == 0);
+    PrintSerTime(manTempTime[i], 0, 1);
+    PrintSpacer(0);
+
+    switch (i){
+    case 3:
+    case 5:
+    case 8:
+      PrintLine(pos++, 5, 62);
+      break;
+    default:
+      break;
+    }
   }
 
-  PrintLine(pos++, 5, 73);
   pos++;
   EscLocate(5, pos++);
   
-  PrintMenuKeyLong((char*)"a-l):");
+  PrintMenuKeyLong((char*)"a-g):");
+  Serial.print(F(" Switch State   "));
   
-  Serial.print(F(" Edit   "));
+  PrintMenuKeyLong((char*)"j-r):");
+  Serial.print(F(" State Value   "));
   
-  PrintMenuKeyLong((char*)"A-H & L):");
-  
-  Serial.print(F(" RunSingle   "));
-  PrintMenuKeyStd('m');
-  Serial.print(F("RunALL   "));
-  PrintMenuKeyStd('n');
-  Serial.print(F("RunAllCent."));
-    
+  PrintMenuKeyLong((char*)"s-z & A):");
+  Serial.print(F(" Apply TempTime"));
+
   PrintShortLine(pos++, 8);
 
   EscLocate(5, pos++);
-  PrintMenuKeyStd('o');
-  Serial.print(F("EditName   "));
-  
-  PrintMenuKeyLong((char*)"1-4):");
-  
-  Serial.print(F(" SelectSet = "));
-  EscColor(fgBlue);
+  PrintMenuKeyStd('1');
+  Serial.print(F("Set TempTime = "));
   EscBold(1);
-  Serial.print(my.Temporary + 1);
-  EscColor(0);
+  PrintSerTime(tempTime, 0, 1);
   PrintSpaces(3);
-  
-  PrintMenuKeyLong((char*)"5-8):");
-  
-  Serial.print(F(" CopyToSet [1-4]"));
-  
+
+  PrintMenuKeyStd('2');
+  Serial.print(F("Run Loop..."));
+
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('o', 8);
+  pos = GetUserKey('z', 2);
 
   if (pos < 1){
     // Exit & TimeOut
+    return 0;
   }
-  else if (IsKeyBetween(pos, 'a', 'g')){
-    // LowTime
-    pos = GetUserTime16ptr(&manual.LowPort[pos - 'a'], 1);
-  }
-  else if (IsKeyBetween(pos, 'i', 'k')){
-    // HighTime (Values)
-    pos = GetUserTime16ptr(&manual.HighPort[pos - 'h'], 0);
-  }
-  else if (pos == 'h' || pos == 'l'){
-    // HighTime - Times
-    pos = GetUserTime16ptr(&manual.HighPort[pos - 'h'], 1);
-  }
-  else if (IsKeyBetween(pos, 'A', 'G')){
-    // Run Single LowTime
-    pos -= 'A';
-    RunManualSetting(pos, 1);
-    pos = 2;
-  }
-  else if (pos == 'H' || pos == 'L'){
-    // Run Single HighTime
-    pos = pos - 'H' + 6;
-    RunManualSetting(pos, 1);
-    pos = 2;
-  }
-  else if (pos == 'm'){
-    // Run Distributed
-    RunManualSetting(255, 0);
-    pos = 2;
-  }
-  else if (pos == 'n'){
-    // Run Centered
-    RunManualSetting(255, 1);
-    pos = 2;
-  }
-  else if (IsKeyBetween(pos, '1', '4')){
-    // Load Set
-    my.Temporary = pos - '1';
-    ManualTimesFromRom(my.Temporary);
-    myToRom();
-  }
-  else if (IsKeyBetween(pos, '5', '8')){
-    // Copy Set
-    ManualTimesToRom(pos - '5');
-    pos = 2;
-  }
-  else if (pos == 'o'){
-    // Edit Name
-    GetUserString(manual.Name);
-    // strcpy(manual.Name, strHLP);
+  else if (IsKeyBetween(pos, 'a', 'i')){
+    // State
+    i = pos - 'a';
+    manual[i].State = !manual[i].State;
     pos = 1;
   }
-  
+  else if (IsKeyBetween(pos, 'j', 'r')){
+    // Value
+    i = pos - 'j';
+    manual[i].Value = GetUserInt(manual[i].Value);
+    pos = 1;
+  }
+  else if (IsKeyBetween(pos, 's', 'z') || pos == 'A'){
+    // Add Temporary Time
+    i = pos;
+    if (i == 'A'){
+      i = 123;
+    }
+    i = i - 's';
+    manTempTime[i] = myTime + tempTime;
+    pos = 2;
+  }
+  else if (pos == '1'){
+    // Set TempTime
+    tempTime = GetUserTime(tempTime);
+  }
+  else if (pos == '2'){
+    // Run Loop
+    return 1;
+  }
   
   if (pos == 1){
-    ManualTimesToRom(my.Temporary);
+    // Save
+    ManualToRom();
   }
   
   if (pos > 0){
     goto Start;
   }
-
-  OffOutPorts();
   
 }
 
@@ -1628,7 +1479,9 @@ Start:
     PrintTimingsMenu();
     break;
   case 'm':
-    PrintManualMenu();
+    if (PrintManualMenu()){
+      pos = 0;
+    }
     break;
   case 'n':
     // Setting Name

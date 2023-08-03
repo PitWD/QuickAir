@@ -64,8 +64,8 @@ PGM_P const ezoStrManType[] PROGMEM = {
     ezoStrManType_8
 };
 
-const char ezoStrTimeType_3[] = "Circ.";
-PGM_P const ezoStrTimeType[] = {
+const char ezoStrTimeType_3[] PROGMEM = "Circ.";
+PGM_P const ezoStrTimeType[] PROGMEM = {
     ezoStrType_0,
     ezoStrManType_6,
     ezoStrManType_7,
@@ -155,9 +155,10 @@ struct manualSTRUCT{
 
     byte State;             // 0 = automatic
                             // 1 = permanent
-    byte Value;             // 0/1 for action ports
+    byte PermVal;             // 0/1 for action ports
                             // 0-n for stepper ports
-    
+    byte TempVal;           // 0/1 for action ports
+                            // 0-n for stepper ports
 
 }manual[9];
 uint32_t manTempTime[9] = {0,0,0,0,0,0,0,0,0};       // End Of TempTime
@@ -224,7 +225,7 @@ void SettingsToRom(int set){ //(int set){
     EEPROM.put(264 + (set * 143), setting);
 }
 void ManualToRom(){
-    // 18 byte 836 = 854(next)
+    // 27 byte 836 = 863(next)
     EEPROM.put(836 , manual);
 }
 
@@ -327,8 +328,8 @@ void CheckOnStep(byte stepperID){
         
     char tempChange = 0;    // If temp was falling/raising
         
-    byte stepUpAllowed = (myTime > stepper[stepperID].TimeSet + stepperUpDelay(stepperID));
-    byte stepDownAllowed = (myTime > stepper[stepperID].TimeSet + stepperDownDelay(stepperID));
+    byte stepUpAllowed = (myTime > stepper[stepperID].TimeSet + stepperUpDelay(stepperID)) && !manual[stepperID + 6].State && !manTempTime[stepperID + 6];
+    byte stepDownAllowed = (myTime > stepper[stepperID].TimeSet + stepperDownDelay(stepperID)) && !manual[stepperID + 6].State && !manTempTime[stepperID + 6];
 
     if (avgState_RTD > stepper[stepperID].TempState){
         // Temp is raising    
@@ -368,7 +369,23 @@ void CheckOnStep(byte stepperID){
     }
     else{
         // temp ok
-    }  
+    } 
+
+    if (manTempTime[stepperID + 6]){
+        // A temporary state is active
+        StepperWrite(stepperID, manual[stepperID + 6].TempVal);
+        if (manTempTime[stepperID + 6] <= myTime){
+            // temp time expired
+            manTempTime[stepperID + 6] = 0;
+        }
+        
+    }
+    else if (manual[stepperID + 6].State){
+        // A permanent state is active
+        StepperWrite(stepperID, manual[stepperID + 6].PermVal);
+    }
+    
+    
 }
 
 char EzoStartValues(byte ezo){

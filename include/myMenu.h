@@ -859,20 +859,20 @@ byte GetUserTime16ptr(uint16_t *valIN, byte isTime){
 
 byte PrintManualMenu(){
 
-    //                     |    State   |    Value    | tempUntil |
-    //----------------------------------------------------------------
-    //          RTD >>     | a)         | j)          | s) 00:00:00 |
-    //          HUM >>     | b)         | k)          | t)          |
-    //          CO2 >>     | c)         | l)          | u)          |
-    //          DEW >>     | d)         | m)          | v)          |
-    //----------------------------------------------------------------
-    //          << RTD     | e)         | n)          | w)          |
-    //          << HUM     | f)         | o)          | x)          |
-    //----------------------------------------------------------------
-    //         Exhaust     | g)         | p)          | y)          | 
-    //         Intake      | h)         | q)          | z)          | 
-    //      Circulation    | i)         | r)          | A)          | 
-    //----------------------------------------------------------------
+    //                   |    State   |  permValue  | tempUntil |  tempValue  |
+    //-------------------------------------------------------------------------
+    //        RTD >>     | a)         | j)          | s) 00:00:00 | B)        |
+    //        HUM >>     | b)         | k)          | t)          | C)        |
+    //        CO2 >>     | c)         | l)          | u)          | D)        |
+    //        DEW >>     | d)         | m)          | v)          | E)        |
+    //-------------------------------------------------------------------------
+    //        << RTD     | e)         | n)          | w)          | F)        |
+    //        << HUM     | f)         | o)          | x)          | G)        |
+    //-------------------------------------------------------------------------
+    //       Exhaust     | g)         | p)          | y)          | H)        |
+    //       Intake      | h)         | q)          | z)          | I)        |
+    //    Circulation    | i)         | r)          | A)          | J)        |
+    //-------------------------------------------------------------------------
 
   uint32_t tempTime = 900;
 
@@ -881,10 +881,10 @@ Start:
   int8_t pos = PrintMenuTop((char*)"- Manual Menu -") + 1;
   byte i = 0;
   
-  EscLocate(21, pos++);
+  EscLocate(20, pos++);
   EscBold(1);
-  Serial.print(F(" |     State     |    Value   |   tempUntil  |"));
-  PrintLine(pos++, 5, 62);
+  Serial.print(F("|     State     | permValue |   tempUntil  | tempValue |"));
+  PrintLine(pos++, 5, 71);
 
   for (i = 0; i < 9; i++){
 
@@ -896,11 +896,16 @@ Start:
     EscLocate(5, pos++);
 
     EscBold(1);
-    PrintCentered(Fa(ezoStrManType[i]), 16);
+    PrintCentered(Fa(ezoStrManType[i]), 14);
     PrintSpacer(1);
     
     PrintMenuKeyStd('a' + i);
     if (!(manTempTime[i])){
+      if (manual[i].State > 1){
+        manual[i].State = 0;
+        ManualToRom();
+      }
+      
       Serial.print(Fa(ezoStrManState[manual[i].State]));
     }
     else{
@@ -917,20 +922,31 @@ Start:
     PrintSpacer(1);
 
     PrintMenuKeyStd('j' + i);
-    PrintInt(manual[i].Value, 6, ' ');
+    PrintInt(manual[i].PermVal, 5, ' ');
     PrintSpacer(manTempTime[i] > 0);
 
-    PrintMenuKeyStd('s' + i);
-    EscBold(manTempTime[i] > 0);
+    if (i < 8){
+      PrintMenuKeyStd('s' + i);
+    }
+    else{
+      PrintMenuKeyStd('A');
+    }
+    
+    
     EscFaint(manTempTime[i] == 0);
     PrintSerTime(manTempTime[i], 0, 1);
+    PrintSpacer(1);
+
+    PrintMenuKeyStd('B' + i);
+    PrintInt(manual[i].TempVal, 5, ' ');
     PrintSpacer(0);
+
 
     switch (i){
     case 3:
     case 5:
     case 8:
-      PrintLine(pos++, 5, 62);
+      PrintLine(pos++, 5, 71);
       break;
     default:
       break;
@@ -944,7 +960,7 @@ Start:
   Serial.print(F(" Switch State   "));
   
   PrintMenuKeyLong((char*)"j-r):");
-  Serial.print(F(" State Value   "));
+  Serial.print(F(" Permanent Value   "));
   
   PrintMenuKeyLong((char*)"s-z & A):");
   Serial.print(F(" Apply TempTime"));
@@ -952,6 +968,10 @@ Start:
   PrintShortLine(pos++, 8);
 
   EscLocate(5, pos++);
+
+  PrintMenuKeyLong((char*)"B-J):");
+  Serial.print(F(" Temporary Value   "));
+
   PrintMenuKeyStd('1');
   Serial.print(F("Set TempTime = "));
   EscBold(1);
@@ -976,9 +996,15 @@ Start:
     pos = 1;
   }
   else if (IsKeyBetween(pos, 'j', 'r')){
-    // Value
+    // permanent Value
     i = pos - 'j';
-    manual[i].Value = GetUserInt(manual[i].Value);
+    manual[i].PermVal = GetUserInt(manual[i].PermVal);
+    pos = 1;
+  }
+  else if (IsKeyBetween(pos, 'B', 'J')){
+    // temporary Value
+    i = pos - 'B';
+    manual[i].TempVal = GetUserInt(manual[i].TempVal);
     pos = 1;
   }
   else if (IsKeyBetween(pos, 's', 'z') || pos == 'A'){
@@ -1009,6 +1035,7 @@ Start:
     goto Start;
   }
   
+  return 0;
 }
 
 void PrintTimingsMenuTime(char key, uint16_t timeIN, byte printSpacer, byte isTime){
@@ -1074,6 +1101,7 @@ Start:
     byte j = (!i || i > 3);
     
     EscBold(1);
+
     PrintCentered(Fa(ezoStrTimeType[i]), 9);
     PrintSmallSpacer();
     PrintTimingsMenuTime(i + 'a', setting.DelayTime[i], 0, 1);

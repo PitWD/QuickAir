@@ -122,7 +122,28 @@ uint32_t checkAction(uint32_t valIN, uint32_t actionTime, byte timeID, byte i, b
   }
   // Port 6   cool (RTD high/tooHigh)
   // Port 7   dry (HUM high/tooHigh)
+
+  if (manual[i - 2].State){
+    // permanent State
+    *backSet = manual[i - 2].PermVal;  
+  }
+
+  if (manTempTime[i - 2]){
+    // A temporary Action is active
+    if (manTempTime[i - 2] > myTime){
+      // Action still valid - set Value
+      *backSet = manual[i - 2].TempVal;
+    }
+    else{
+      // Action Time expired
+      manTempTime[i - 2] = 0;
+    }  
+  }
+  else{
+    // No temporary action...    
+  }
   
+    
   digitalWrite(i, *backSet);
 
   return r;
@@ -205,6 +226,11 @@ void loop() {
         }
       }
 
+    // Check On Stepper Actions...
+    for (byte i = 0; i < 3; i++){
+      CheckOnStep(i);
+    }
+
       int32_t highToUse;
       int32_t tooHighToUse;
       
@@ -285,11 +311,6 @@ void loop() {
         break;
       }
       
-    }
-
-    // Check On Steper Actions...
-    for (byte i = 0; i < 3; i++){
-      CheckOnStep(i);
     }
     
     //Read EZO's

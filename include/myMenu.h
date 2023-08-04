@@ -586,7 +586,7 @@ void PrintLowToHigh(){
 int8_t PrintCopySettingTo(int8_t pos){
   EscLocate(5, pos++);
   
-  PrintMenuKeyLong((char*)"1-3):");
+  PrintMenuKeyLong((char*)"1-4):");
   
   Serial.print(F(" Copy FULL SETTING "));
   EscColor(fgBlue);
@@ -595,7 +595,7 @@ int8_t PrintCopySettingTo(int8_t pos){
   Serial.print(my.Setting + 1);
   Serial.print(F(")"));
   EscColor(0);
-  Serial.print(F(" to Setting-No. [1-3]"));
+  Serial.print(F(" to Setting-No. [1-4]"));
   return pos;
 }
 
@@ -682,7 +682,7 @@ Start:
   
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('p', 3);
+  pos = GetUserKey('p', 4);
 
   if (pos < 1){
     // Exit & TimeOut
@@ -708,7 +708,7 @@ Start:
     // tooHigh
     pos = PrintValuesMenuChangeVal(&setting.ValueTooHigh[pos - 'o']);
   }
-  else if (IsKeyBetween(pos, '1', '2')){
+  else if (IsKeyBetween(pos, '1', '4')){
     // Copy to Day / Night
     SettingsToRom(pos - '1'); 
     pos = 2;   
@@ -1149,7 +1149,7 @@ Start:
 
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('z', 3);
+  pos = GetUserKey('z', 4);
 
   byte j = 1;
 
@@ -1188,7 +1188,7 @@ Start:
     // tooHigh
     pos = GetUserTime16ptr(&setting.TimeTooHigh[pos - 'A'], j);
   }
-  else if (IsKeyBetween(pos, '1', '3')){
+  else if (IsKeyBetween(pos, '1', '4')){
     SettingsToRom(pos - '1'); 
     pos = 2;   
   }
@@ -1421,16 +1421,16 @@ Start:
   Serial.print((char*)setting.Name);
   PrintSpaces(3);
 
-  PrintMenuKeyLong((char*)"o-q):");
+  PrintMenuKeyLong((char*)"o-r):");
 
-  Serial.print(F(" Sel.Setting [1-3] = "));
+  Serial.print(F(" Sel.Setting [1-4] = "));
   EscBoldColor(fgBlue);
   Serial.print(my.Setting + 1);
   EscBoldColor(0);
 
   PrintMenuEnd(pos + 1);
 
-  pos = GetUserKey('q', ezoCnt);
+  pos = GetUserKey('r', ezoCnt);
   switch (pos){
   case -1:
     // TimeOut
@@ -1519,6 +1519,7 @@ Start:
   case 'o':
   case 'p':
   case 'q':
+  case 'r':
     // Select Setting
     my.Setting = pos - 'o';
     SettingsFromRom(my.Setting);

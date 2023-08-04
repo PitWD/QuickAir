@@ -155,7 +155,7 @@ struct manualSTRUCT{
 
     byte State;             // 0 = automatic
                             // 1 = permanent
-    byte PermVal;             // 0/1 for action ports
+    byte PermVal;           // 0/1 for action ports
                             // 0-n for stepper ports
     byte TempVal;           // 0/1 for action ports
                             // 0-n for stepper ports

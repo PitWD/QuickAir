@@ -57,7 +57,7 @@ Dim Color changed:
 
 <br>
 
-The *secondary* **main settings menu**. All probes/modules are selected.
+The *secondary* **main settings menu**. All probes/modules are selected. Individual port definition for the ventilators. 
 ![Secondary Main Screen](/images/Auswahl_005.png)
 
 <br>
@@ -77,17 +77,22 @@ During the calibration for a 1-Point calibration.
 <br>
 
 The **Set Values Menu**. Here you define the values for "(Too)Low" and "(Too)High".  
-*On a 328 you can define up to three independent settings*
+*On a 328 you can define up to four independent settings*
 ![Set Timings Menu](/images/Auswahl_010.png)
 
 <br>
 
-The **Set Timings & Steps Menu**. Here you define how the action-times are if a state is for at least the delay-time "TooLow", "Low", "High" or "TooHigh". You also define the ventilation-speed mapping here.   
-*On a 328 you can define up to three independent settings*
+The **Set Timings & Steps Menu**. Here you define how the action-times are if a state is for at least the delay-time "TooLow", "Low", "High" or "TooHigh". You also define the "fuzzy" ventilation-speed mapping here.   
+*On a 328 you can define up to four independent settings*
 ![Set Timings Menu](/images/Auswahl_011.png)
 
 <br>
 
-I can't declare this project actually as that useable like I do for <a href="https://github.com/PitWD/QuickTimer"> CannaClocky</a> or the <a href="https://github.com/PitWD/QuickWater"> CannaWatery</a>. The communication-part with the Atlas-Scientific modules and visualization of the read values is 100% usable - some prototypes are working perfect since a while. Just the actions and manual-mode isn't fully implemented/functioning yet...  
+The **Manual Menu**. Gives you full manual access, temporary or permanent, on all binary and "analog" action ports. A temporary set state will always fall back into the right automatic/permanent state after the temporary time expired. 
+![Set Timings Menu](/images/Auswahl_012.png)
+
+<br>
+
+I can't declare this project actually as that useable like I do for <a href="https://github.com/PitWD/QuickTimer"> CannaClocky</a> or the <a href="https://github.com/PitWD/QuickWater"> CannaWatery</a>. The communication-part with the Atlas-Scientific modules and visualization of the read values is 100% usable - some prototypes are working perfect since a while.Even the actions-ports and manual-mode is fully implemented now and seems to functioning fine...  
 Some planned extensions could break the actual structure of the internal EPROM - this will break the user made settings. There is actually no safe "fuse" to prevent that re-flashed µC's with a then broken EPROM will boot in a usable state.
 

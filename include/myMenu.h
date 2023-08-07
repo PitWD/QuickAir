@@ -247,8 +247,8 @@ Start:
   Serial.print(F("Boot For Terminal Use"));
   EscFaint(0);
   PrintShortLine(pos++, 8);
-  EscLocate(19, pos++); Serial.print(F("Stepper    | FirstPort |  LastPort |"));
-  PrintLine(pos++, 15, 40);
+  EscLocate(19, pos++); Serial.print(F("Stepper    | FirstPort |  LastPort |  StepLogic |"));
+  PrintLine(pos++, 15, 53);
   for (byte i = 0; i < 3; i++){
     EscLocate(15, pos++);
     EscBold(1);
@@ -260,8 +260,17 @@ Start:
     PrintMenuKeyStdBoldFaint('m' + i, 0, !stepperDefinition.PortLast[i] == 0);
     PrintInt(stepperDefinition.PortLast[i], 5, ' ');
     PrintSpacer(1);
+    PrintMenuKeyStd('p' + i);
+    if (stepperDefinition.StepLogic[i]){
+      Serial.print(F("binary"));
+    }
+    else{
+      Serial.print(F("analog"));
+    }
+    PrintSpacer(1);
+    
   }
-  PrintLine(pos, 15, 40);
+  PrintLine(pos, 15, 53);
   
   PrintMenuEnd(pos + 2);
 
@@ -288,6 +297,9 @@ Start:
       // LastPort
       stepperDefinition.PortLast[pos - 'm'] = GetUserInt(stepperDefinition.PortLast[pos - 'm']);
       StepperToRom();
+      break;
+    case 'p'...'r':
+      stepperDefinition.StepLogic[pos - 'p'] = !stepperDefinition.StepLogic[pos - 'p'];
       break;
     default:
       break;

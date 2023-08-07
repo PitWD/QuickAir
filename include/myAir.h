@@ -190,6 +190,7 @@ stepperSTRUCT stepper[3];
 struct stepperDefSTRUCT{
     byte PortFirst[3];  // Absolut Port on Bord (2-7 are occupied by action ports)
     byte PortLast[3];
+    byte StepLogic[3];   // If the logic is steps or binary
 }stepperDefinition;
     //                     |  FirstPort |  LastPort  |
     //------------------------------------------------
@@ -242,7 +243,7 @@ void ManualToRom(){
     EEPROM.put(836 , manual);
 }
 void StepperToRom(){
-    // 6 byte 863 = 869(next)
+    // 9 byte 863 = 872(next)
     EEPROM.put(863 , stepperDefinition);
 }
 
@@ -253,7 +254,6 @@ void SettingsFromRom(int set){ //(int set){
    EEPROM.get(264 + set * (143), setting);
 }
 void ManualFromRom(){
-    //set *= 41;
     EEPROM.get(836, manual);
 }
 void StepperFromRom(){
@@ -334,6 +334,17 @@ void StepperWrite(byte stepperID, byte value){
     stepper[stepperID].Value = value;
     stepper[stepperID].TimeSet = myTime;
     stepper[stepperID].TempState = avgState_RTD;
+
+    //StepLogic
+    if (stepperDefinition.StepLogic[stepperID]){
+        // Binary
+    }
+    else{
+        // Analog (in a row)
+
+    }
+    
+    
 }
 
 #define StepperUp(stepperID) StepperWrite(stepperID, stepper[stepperID].Value + 1)

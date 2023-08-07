@@ -335,16 +335,17 @@ void StepperWrite(byte stepperID, byte value){
     stepper[stepperID].TimeSet = myTime;
     stepper[stepperID].TempState = avgState_RTD;
 
-    //StepLogic
-    if (stepperDefinition.StepLogic[stepperID]){
-        // Binary
-    }
-    else{
-        // Analog (in a row)
-
-    }
-    
-    
+    // Set physical Ports        
+    for (byte i = stepperDefinition.PortFirst[stepperID]; i <= stepperDefinition.PortLast[stepperID]; i++){
+        if (stepperDefinition.StepLogic[stepperID]){
+            // Binary
+            digitalWrite(i, (stepper[stepperID].Value >> (i - stepperDefinition.PortFirst[stepperID])) & 1);            
+        }
+        else{
+            // Analog (in a row)
+            digitalWrite(i, (stepper[stepperID].Value > i - stepperDefinition.PortFirst[stepperID]));            
+        }
+    } 
 }
 
 #define StepperUp(stepperID) StepperWrite(stepperID, stepper[stepperID].Value + 1)

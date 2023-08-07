@@ -26,6 +26,7 @@ void setup() {
 
   myFromRom();
   ManualFromRom();
+  StepperFromRom();
   //LowHighValsFromRom(my.Model);
   SettingsFromRom(my.Setting);
 

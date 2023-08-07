@@ -186,6 +186,19 @@ typedef struct stepperSTRUCT{
 }stepperSTRUCT;
 stepperSTRUCT stepper[3];
 
+// Stepper Port Definition
+struct stepperDefSTRUCT{
+    byte PortFirst[3];  // Absolut Port on Bord (2-7 are occupied by action ports)
+    byte PortLast[3];
+}stepperDefinition;
+    //                     |  FirstPort |  LastPort  |
+    //------------------------------------------------
+    //         Exhaust     | a)         | d)         |
+    //         Intake      | b)         | e)         |
+    //      Circulation    | c)         | f)         |
+    //------------------------------------------------
+
+
 #define stepExID 0;
 #define stepInID 1;
 #define stepCircID 2;
@@ -228,6 +241,10 @@ void ManualToRom(){
     // 27 byte 836 = 863(next)
     EEPROM.put(836 , manual);
 }
+void StepperToRom(){
+    // 6 byte 863 = 869(next)
+    EEPROM.put(863 , stepperDefinition);
+}
 
 void DefaultProbesFromRom(){
     EEPROM.get(0, ezoProbe);
@@ -239,6 +256,9 @@ void ManualFromRom(){
     //set *= 41;
     EEPROM.get(836, manual);
 }
+void StepperFromRom(){
+    EEPROM.get(863 , stepperDefinition);
+} 
 
 void OffOutPorts(){
     // Missing that the ventilation-ports 'OFF' is the value of 'OK'

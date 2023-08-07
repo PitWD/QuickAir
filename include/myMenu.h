@@ -74,24 +74,21 @@ byte PrintQuickAir(){
 byte PrintAllMenuOpt1(byte pos){
 
   EscLocate(5, pos++);
-  PrintMenuKeyStd('a'); Serial.print(F("Reset     "));
-  PrintMenuKeyStd('b'); Serial.print(F("Clear Calibration(s)     "));
-  PrintMenuKeyStd('c'); Serial.print(F("Delete Name(s)"));
-  PrintShortLine(pos++, 8);
-  EscLocate(5, pos);
-  PrintMenuKeyStd('d'); Serial.print(F("(Auto-)Name = "));
+  PrintMenuKeyStd('a'); Serial.print(F("Reset   "));
+  PrintMenuKeyStd('b'); Serial.print(F("Clear Cal(s)   "));
+  PrintMenuKeyStd('c'); Serial.print(F("Del Name(s)   "));
+  PrintMenuKeyStd('d'); Serial.print(F("Do Name(s)"));
+  EscLocate(5, pos++);
+  PrintMenuKeyStd('e'); Serial.print(F("Name = "));
   EscBold(1);
   Serial.print((char*)strDefault);
-  EscLocate(42, pos++);
-  PrintMenuKeyStd('e'); Serial.print(F("Do (Auto-)Name(s)"));
-  PrintShortLine(pos++, 8);
-  EscLocate(5, pos++);
-  PrintMenuKeyStd('f'); Serial.print(F("(1st) (Auto-)Address = "));
+  PrintSpaces(3);
+  PrintMenuKeyStd('f'); Serial.print(F("Addr. = "));
   EscBold(1);
   IntToIntStr(adrDefault, 3, '0');
   Serial.print((char*)strHLP);
-  PrintSpaces(5);
-  PrintMenuKeyStd('g'); Serial.print(F("Do (Auto-)Address(es)"));
+  PrintSpaces(3);
+  PrintMenuKeyStd('g'); Serial.print(F("Do Addr.(es)"));
     
   return pos;
 
@@ -113,11 +110,11 @@ byte SwitchAllAndProbeMenu(int8_t pos, byte ezo, byte all){
     // Delete all names
     EzoSetName((char*)"", ezo, all, 0);
     break;
-  case 'd':
+  case 'e':
     // Edit Auto Name
     EditAutoName();
     break;
-  case 'e':
+  case 'd':
     // Set AutoNames
     EzoSetName(strDefault, ezo, all, 1);
     break;
@@ -242,13 +239,29 @@ Start:
   pos = PrintAllMenuOpt1(pos);
   
   PrintShortLine(pos++, 8);
-  EscLocate(5, pos);
+  EscLocate(5, pos++);
   PrintMenuKeyStdBoldFaint('h', my.Boot, !my.Boot);
   Serial.print(F("Boot As ModBUS Slave     "));
   EscFaint(0);
   PrintMenuKeyStdBoldFaint('i', !my.Boot, my.Boot);
   Serial.print(F("Boot For Terminal Use"));
   EscFaint(0);
+  PrintShortLine(pos++, 8);
+  EscLocate(19, pos++); Serial.print(F("Stepper    | FirstPort |  LastPort |"));
+  PrintLine(pos++, 15, 40);
+  for (byte i = 0; i < 3; i++){
+    EscLocate(15, pos++);
+    EscBold(1);
+    PrintCentered(Fa(ezoStrManType[i + 6]), 14);
+    PrintSpacer(1);    /* code */
+    PrintMenuKeyStdBoldFaint('j' + i, 0, !stepperDefinition.PortFirst[i] == 0);
+    PrintInt(stepperDefinition.PortFirst[i], 5, ' ');
+    PrintSpacer(1);
+    PrintMenuKeyStdBoldFaint('m' + i, 0, !stepperDefinition.PortLast[i] == 0);
+    PrintInt(stepperDefinition.PortLast[i], 5, ' ');
+    PrintSpacer(1);
+  }
+  PrintLine(pos, 15, 40);
   
   PrintMenuEnd(pos + 2);
 
@@ -265,6 +278,16 @@ Start:
       // Boot For Terminal
       my.Boot = 0;
       myToRom();
+      break;
+    case 'j'...'l':
+      // FirstPort
+      stepperDefinition.PortFirst[pos - 'j'] = GetUserInt(stepperDefinition.PortFirst[pos - 'j']);
+      StepperToRom();
+      break;
+    case 'm'...'o':
+      // LastPort
+      stepperDefinition.PortLast[pos - 'm'] = GetUserInt(stepperDefinition.PortLast[pos - 'm']);
+      StepperToRom();
       break;
     default:
       break;
@@ -402,7 +425,7 @@ void PrintCalMenu(byte ezo, byte all){
     EscLocate(5, pos);
     PrintMenuKeyStd('f'); Serial.print(F("Set Low"));
     PrintPointEqual(pos++, calLow);
-}
+  }
   if (myMenu.g){
     // Set High Point
     EscLocate(5, pos);

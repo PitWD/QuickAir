@@ -162,8 +162,12 @@ void loop() {
     uint32_t preToo = 0;
 
     PrintPortStates();
-
-    PrintLoopTimes();    
+    if (!my.Boot){
+      PrintLoopTimes();    
+    }
+    else{
+      // We're not in Terminal-Mode
+    }
 
     // Check High/Low of AVGs 
     // compare action-ports timeOuts with timing-setting
@@ -326,14 +330,22 @@ void loop() {
 
       avg_RTD = (avg_RTD + avg_TMP) / 2;  // Temp calculations are based on "ezoRTD",
                                           // but avg of RTD is avg of TMP and RTD
-      
-      PrintAVGs(err + 1);
+      if (!my.Boot){
+        PrintAVGs(err + 1);
+      }
     } 
   }
 
   if (GetONEchar()){
-    OffOutPorts();
-    PrintMainMenu();    
+    if (!my.Boot){
+      //OffOutPorts();
+      PrintMainMenu();
+    }
+    else{
+      // We're not in Terminal-Mode
+      // Force 1x values output
+      portStateFirstRun = 0;
+    }
   }
 
 }

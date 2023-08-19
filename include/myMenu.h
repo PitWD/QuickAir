@@ -240,12 +240,12 @@ Start:
   
   PrintShortLine(pos++, 8);
   EscLocate(5, pos++);
-  PrintMenuKeyStdBoldFaint('h', my.Boot, !my.Boot);
-  Serial.print(F("Boot As ModBUS Slave     "));
-  EscFaint(0);
-  PrintMenuKeyStdBoldFaint('i', !my.Boot, my.Boot);
-  Serial.print(F("Boot For Terminal Use"));
-  EscFaint(0);
+  PrintMenuKeyStd('h');
+  Serial.print(F("Boot Modes = "));
+  EscBold(1);
+  Serial.print((char*)Fa(bootMode[my.Boot]));
+  EscBold(0);
+  
   PrintShortLine(pos++, 8);
   EscLocate(19, pos++); Serial.print(F("Stepper    | FirstPort |  LastPort |  StepLogic |"));
   PrintLine(pos++, 15, 53);
@@ -254,13 +254,13 @@ Start:
     EscBold(1);
     PrintCentered(Fa(ezoStrManType[i + 6]), 14);
     PrintSpacer(1);    /* code */
-    PrintMenuKeyStdBoldFaint('j' + i, 0, !stepperDefinition.PortFirst[i] == 0);
+    PrintMenuKeyStdBoldFaint('i' + i, 0, !stepperDefinition.PortFirst[i] == 0);
     PrintInt(stepperDefinition.PortFirst[i], 5, ' ');
     PrintSpacer(1);
-    PrintMenuKeyStdBoldFaint('m' + i, 0, !stepperDefinition.PortLast[i] == 0);
+    PrintMenuKeyStdBoldFaint('l' + i, 0, !stepperDefinition.PortLast[i] == 0);
     PrintInt(stepperDefinition.PortLast[i], 5, ' ');
     PrintSpacer(1);
-    PrintMenuKeyStd('p' + i);
+    PrintMenuKeyStd('o' + i);
     if (stepperDefinition.StepLogic[i]){
       Serial.print(F("binary"));
     }
@@ -274,32 +274,30 @@ Start:
   
   PrintMenuEnd(pos + 2);
 
-  pos = GetUserKey('i', -1);
+  pos = GetUserKey('q', -1);
 
   if (!SwitchAllAndProbeMenu(pos, 0, 2)){
     switch (pos){
     case 'h':
-      // Boot As Slave
-      my.Boot = 1;
+      // Boot Mode
+      my.Boot++;
+      if (my.Boot > 3){
+        my.Boot = 0;
+      }
       myToRom();
       break;
-    case 'i':
-      // Boot For Terminal
-      my.Boot = 0;
-      myToRom();
-      break;
-    case 'j'...'l':
+    case 'i'...'k':
       // FirstPort
-      stepperDefinition.PortFirst[pos - 'j'] = GetUserInt(stepperDefinition.PortFirst[pos - 'j']);
+      stepperDefinition.PortFirst[pos - 'i'] = GetUserInt(stepperDefinition.PortFirst[pos - 'i']);
       StepperToRom();
       break;
-    case 'm'...'o':
+    case 'l'...'n':
       // LastPort
-      stepperDefinition.PortLast[pos - 'm'] = GetUserInt(stepperDefinition.PortLast[pos - 'm']);
+      stepperDefinition.PortLast[pos - 'l'] = GetUserInt(stepperDefinition.PortLast[pos - 'l']);
       StepperToRom();
       break;
-    case 'p'...'r':
-      stepperDefinition.StepLogic[pos - 'p'] = !stepperDefinition.StepLogic[pos - 'p'];
+    case 'o'...'q':
+      stepperDefinition.StepLogic[pos - 'o'] = !stepperDefinition.StepLogic[pos - 'o'];
       break;
     default:
       break;
@@ -802,35 +800,85 @@ void PrintPortStates(){
   if (isChanged || !portStateFirstRun){
     for (byte i = 0; i < 4; i++){
       // Low-Ports
-      EscLocate(posOfPort[i], myLastLine);
+      
+      if (!my.Boot){
+        EscLocate(posOfPort[i], myLastLine);
+      }
+      
       if (lastVal[i]){
-        EscBold(1);
-        SetAvgColorEZO(i);
-        Serial.print(F(">"));
-        EscFaint(1);
+        if (!my.Boot){
+          // Terminal
+          EscBold(1);
+          SetAvgColorEZO(i);
+          Serial.print(F(">"));
+          EscFaint(1);
+        }
+        else if (my.Boot < 3){
+          // ModBus RTU & AscII
+        }
+        else{
+          // just values
+          MBaction(my.Address, 2, i, 1);
+        }
       }
       else{
-        EscFaint(1);
-        Serial.print(F(">"));
-        EscBold(1);
-        SetAvgColorEZO(i);
+        if (!my.Boot){
+          // Terminal
+          EscFaint(1);
+          Serial.print(F(">"));
+          EscBold(1);
+          SetAvgColorEZO(i);
+        }
+        else if (my.Boot < 3){
+          // ModBus RTU & AscII
+        }
+        else{
+          // just values
+          MBaction(my.Address, 2, i, 0);
+        }
       }
-      Serial.print(F("~"));
+      if (!my.Boot){
+        Serial.print(F("~"));
+      }
+      
     }
     for (byte i = 4; i < 6; i++){
       // High-Ports
-      EscLocate(posOfPort[i], myLastLine);
+      if (!my.Boot){
+        EscLocate(posOfPort[i], myLastLine);
+      }
+      
       if (lastVal[i]){
-        EscBold(1);
-        SetAvgColorEZO(i - 4);
-        Serial.print(F("<"));
-        EscCursorLeft(2);
-        EscFaint(1);
-        Serial.print(F("~"));
+        if (!my.Boot){
+          // Terminal
+          EscBold(1);
+          SetAvgColorEZO(i - 4);
+          Serial.print(F("<"));
+          EscCursorLeft(2);
+          EscFaint(1);
+          Serial.print(F("~"));
+        }
+        else if (my.Boot < 3){
+          // ModBus RTU & AscII
+        }
+        else{
+          // just values
+          MBaction(my.Address, 2, i, 1);
+        }
       }
       else{
-        EscFaint(1);
-        Serial.print(F("<"));        
+        if (!my.Boot){
+          // Terminal
+          EscFaint(1);
+          Serial.print(F("<"));        
+        }
+        else if (my.Boot < 3){
+          // ModBus RTU & AscII
+        }
+        else{
+          // just values
+          MBaction(my.Address, 2, i, 1);
+        }
       }
     }
 
@@ -838,19 +886,30 @@ void PrintPortStates(){
     
     for (byte i = 6; i < 9; i++){
       // Analog-Ports
-      EscLocate(posOfVal[i - 6], myLastLine);
-      EscBold(1);
-      SetAvgColorEZO(ezoRTD);
-      Serial.print(lastVal[i]);
-      EscColor(0);
-      EscBold(0);
-      Serial.print(F("~"));
-      EscCursorLeft(3);
-      Serial.print(F("~"));
+      if (!my.Boot){
+        // Terminal
+        EscLocate(posOfVal[i - 6], myLastLine);
+        EscBold(1);
+        SetAvgColorEZO(ezoRTD);
+        Serial.print(lastVal[i]);
+        EscColor(0);
+        EscBold(0);
+        Serial.print(F("~"));
+        EscCursorLeft(3);
+        Serial.print(F("~"));
+        EscBoldColor(0);
+      }
+      else if (my.Boot < 3){
+        // ModBus RTU & AscII
+      }
+      else{
+        // just values
+        MBaction(my.Address, 2, i, lastVal[i]);
+      }
     }
     
     portStateFirstRun = 1;
-    EscBoldColor(0);
+    
   }
 }
 
@@ -1270,19 +1329,37 @@ byte PrintWaterValsHlp(byte pos, byte posX, byte ezotype, byte lz, byte dp, int 
       avg[2] += ezoValue[i][2];
       
       while (!j || (ezotype == ezoHUM && j < 3)){
-        EscLocate(posX, pos);
-        Serial.print(i + 1);
-        Serial.print(F(": "));
-        PrintBoldFloat(ezoValue[i][j] / divisor, lz, dp, ' ');
-        if (ezotype == ezoHUM && j){
-          posX += 45;
-          PrintUnit(5 - j, 1, 0, 3);
+        if (!my.Boot){
+          // Terminal
+          EscLocate(posX, pos);
+          Serial.print(i + 1);
+          Serial.print(F(": "));
+          PrintBoldFloat(ezoValue[i][j] / divisor, lz, dp, ' ');
+          if (ezotype == ezoHUM && j){
+            posX += 45;
+            PrintUnit(5 - j, 1, 0, 3);
+          }
+          else{
+            PrintUnit(ezotype, 1, 0, 3);
+            if (ezotype == ezoHUM){
+              posX -= 14; // Shift for Temp of HUM
+            }
+          }
+        }
+        else if (my.Boot < 3){
+          // ModBus RTU & AscII
         }
         else{
-          PrintUnit(ezotype, 1, 0, 3);
-          if (ezotype == ezoHUM){
-            posX -= 14; // Shift for Temp of HUM
-          }
+          // just values
+          MBstart(my.Address);
+          iicStr[2] = 2;          // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
+          iicStr[3] = 2;          // Value Probe
+          iicStr[4] = i;          // ID of probe
+          iicStr[5] = ezotype;    // type of probe
+          iicStr[6] = j;          // value ID (e.g. HUM has multiple values on one probe...)
+          // Value of probe
+          MBaddLong(ezoValue[i][j], 7);
+          MBstop(11);
         }
         j++;        
       }
@@ -1295,11 +1372,38 @@ byte PrintWaterValsHlp(byte pos, byte posX, byte ezotype, byte lz, byte dp, int 
 
   if (posAct){
     avgVal[ezotype] = avg[0] / (long)posAct;
+    // avg[0] = avgVal[ezotype];
     if (ezotype == ezoHUM){
       // Humidity has three Values...
       avg_TMP = avg[1] / (long)posAct;
+      // avg[1] = avg_TMP;
       avg_DEW = avg[2] / (long)posAct;
+      // avg[2] = avg_DEW;
     }
+    if (!my.Boot){
+      // Terminal
+    }
+    else if (my.Boot < 3){
+      // ModBus RTU & AscII
+    }
+    else{
+      // just values
+      /*
+      for (byte i = 0; i < 3; i++){
+        if (!i || ezotype == ezoHUM){
+          MBstart(my.Address);
+          iicStr[2] = 2;          // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
+          iicStr[3] = 3;          // Value AVG
+          iicStr[4] = ezotype;    // type of probe
+          iicStr[5] = i;          // value ID (e.g. HUM has multiple values on one probe...)
+          // Value of probe
+          MBaddLong(avg[i], 6);
+          MBstop(10);
+        } 
+      }
+      */
+    }
+
   }
 
   return posAct;
@@ -1370,40 +1474,47 @@ byte PrintAVGs(byte pos){
 
 void PrintLoopMenu(){
 
-  EscCls();
-  EscInverse(1);
-  byte pos = PrintQuickAir();
-  EscInverse(0);
-  pos++;
+  byte pos = 0;
 
-  EscLocate(3, pos++);
+  if (!my.Boot){
+    EscCls();
+    EscInverse(1);
+    pos = PrintQuickAir();
+    EscInverse(0);
+    pos++;
+
+    EscLocate(3, pos++);
+    
+    //EscBold(1);
+    //Serial.print(F("|   Temp.    |    EC     |     pH     |    Redox    |    O2     |   Level  |"));
+    //pos = PrintLine(pos, 3, 76);
+    //EscBold(0);
+
+    pos = PrintTempToLevel(pos);
+
+    PrintErrorOK(0, 0, (char*)"Read Loop started...");
+  }
   
-  //EscBold(1);
-  //Serial.print(F("|   Temp.    |    EC     |     pH     |    Redox    |    O2     |   Level  |"));
-  //pos = PrintLine(pos, 3, 76);
-  //EscBold(0);
-
-  pos = PrintTempToLevel(pos);
-
-  PrintErrorOK(0, 0, (char*)"Read Loop started...");
 
   pos = PrintWaterVals(pos);
 
-  pos = PrintLine(pos, 3, 76);
-  
-  // Avg 
-  pos = PrintAVGs(pos);
+  if (!my.Boot){
+    pos = PrintLine(pos, 3, 76);
+    
+    // Avg 
+    pos = PrintAVGs(pos);
 
-  pos = PrintLine(pos, 3, 76);
+    pos = PrintLine(pos, 3, 76);
+    
+    EscBold(1);
+    
+    // we need this pos in loop() / PrintPortStates()
+    myLastLine = pos;
+    portStateFirstRun = 0;
+    
+    PrintLine(pos + 1, 3, 76);
+  }
   
-  EscBold(1);
-  
-  // we need this pos in loop() / PrintPortStates()
-  myLastLine = pos;
-  portStateFirstRun = 0;
-  
-  PrintLine(pos + 1, 3, 76);
-
 }
 
 void PrintMainMenu(){

@@ -98,6 +98,18 @@ PGM_P const ezoStrUnit[] PROGMEM = {
     ezoStrUnit_0,
 };
 
+const char bootMode_0[] PROGMEM = "Terminal";
+const char bootMode_1[] PROGMEM = "RTU";
+const char bootMode_2[] PROGMEM = "ASCII";
+const char bootMode_3[] PROGMEM = "Just-Values";
+PGM_P const bootMode[] PROGMEM = {
+    bootMode_0,
+    bootMode_1,
+    bootMode_2,
+    bootMode_3
+};
+
+
 // Waittime for readings...
 const int ezoWait[] PROGMEM = {600, 900, 900}; // !! check the 900s !!
 

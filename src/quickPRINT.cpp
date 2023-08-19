@@ -119,7 +119,7 @@ byte PrintDashLine(byte posY, byte posX, byte len){
 #endif
 
 
-void PrintErrorOK(int8_t err, byte len, char *strIN, byte addr){
+void PrintErrorOK(int8_t err, byte len, char *strIN, byte addr, byte type){
 
    // !! Bottom-Line of TUI !!
 
@@ -128,52 +128,68 @@ void PrintErrorOK(int8_t err, byte len, char *strIN, byte addr){
 
   //byte len = strlen(strIN) + 40;
 
-  EscInverse(1);
-  EscLocate(1,24);
+  if (!my.Boot){
+    // Terminal
+    EscInverse(1);
+    EscLocate(1,24);
 
-  if (err == -1){
-    // Error
-    EscColor(bgRed);
+    if (err == -1){
+      // Error
+      EscColor(bgRed);
+    }
+    else if(err == 1){
+      // OK
+      EscColor(bgGreen);
+    }
+    else{
+      // Info
+      EscBold(1);
+    }
+    
+    PrintSpaces(4);
+    //Serial.print(F("    "));
+    Serial.print(strIN);
+    EscBold(0);
+    EscColor(49);
+
+    Serial.print(F(" @ "));
+    Serial.print(addr);
+    PrintRunTime();
+
+    // c++ pointer shit...
+    if (!len){
+      // TAKE CARE
+      // if strIN is a char-array a la strHLP - we already have the len of strIN
+      // if not, function got called with a (char*)"BlaBlaBla"
+      len = strlen(strIN);
+    }
+    
+    PrintSpaces(40 - len);
+    //for (int i = 0; i < len; i++){
+      //Print1Space();
+    //}
+    
+    //PrintDateTime();
+    //Print1Space();
+    
+    EscInverse(0);
+    //Serial.println("");
+    //Serial.println(strlen(strIN));
   }
-  else if(err == 1){
-    // OK
-    EscColor(bgGreen);
+  else if (my.Boot < 3){
+    // ModBus RTU & AscII
   }
   else{
-    // Info
-    EscBold(1);
+    // just values in case of an error
+    if (err == -1){
+      MBstart(my.Address);
+      iicStr[2] = type;       // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
+      iicStr[3] = 3;          // Error
+      iicStr[4] = addr;       // ID of probe
+      iicStr[5] = strIN[1];   // value ID (e.g. HUM has multiple values on one probe...)
+      MBstop(6);
+    }    
   }
-  
-  PrintSpaces(4);
-  //Serial.print(F("    "));
-  Serial.print(strIN);
-  EscBold(0);
-  EscColor(49);
-
-  Serial.print(F(" @ "));
-  Serial.print(addr);
-  PrintRunTime();
-
-  // c++ pointer shit...
-  if (!len){
-    // TAKE CARE
-    // if strIN is a char-array a la strHLP - we already have the len of strIN
-    // if not, function got called with a (char*)"BlaBlaBla"
-    len = strlen(strIN);
-  }
-  
-  PrintSpaces(40 - len);
-  //for (int i = 0; i < len; i++){
-    //Print1Space();
-  //}
-  
-  //PrintDateTime();
-  //Print1Space();
-  
-  EscInverse(0);
-//Serial.println("");
-//Serial.println(strlen(strIN));
-
 }
 
 void PrintCentered(char *strIN, byte centerLen){

@@ -1492,7 +1492,7 @@ void PrintLoopMenu(){
 
     pos = PrintTempToLevel(pos);
 
-    PrintErrorOK(0, 0, (char*)"Read Loop started...");
+    PrintErrorOK(0, 0, (char*)"Read Loop started...", 0);
   }
   
 

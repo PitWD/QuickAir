@@ -1352,14 +1352,14 @@ byte PrintWaterValsHlp(byte pos, byte posX, byte ezotype, byte lz, byte dp, int 
         else{
           // just values
           MBstart(my.Address);
-          iicStr[2] = 2;          // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
-          iicStr[3] = 2;          // Value Probe
-          iicStr[4] = i;          // ID of probe
-          iicStr[5] = ezotype;    // type of probe
-          iicStr[6] = j;          // value ID (e.g. HUM has multiple values on one probe...)
+          // iicStr[2] = 2;          // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
+          iicStr[2] = 2;          // Value Probe
+          iicStr[3] = i;          // ID of probe
+          // iicStr[4] = ezotype;    // type of probe
+          iicStr[4] = j;          // value ID (e.g. HUM has multiple values on one probe...)
           // Value of probe
-          MBaddLong(ezoValue[i][j], 7);
-          MBstop(11);
+          MBaddLong(ezoValue[i][j], 5);
+          MBstop(9);
         }
         j++;        
       }

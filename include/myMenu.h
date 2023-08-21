@@ -1351,15 +1351,7 @@ byte PrintWaterValsHlp(byte pos, byte posX, byte ezotype, byte lz, byte dp, int 
         }
         else{
           // just values
-          MBstart(my.Address);
-          // iicStr[2] = 2;          // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
-          iicStr[2] = 2;          // Value Probe
-          iicStr[3] = i;          // ID of probe
-          // iicStr[4] = ezotype;    // type of probe
-          iicStr[4] = j;          // value ID (e.g. HUM has multiple values on one probe...)
-          // Value of probe
-          MBaddLong(ezoValue[i][j], 5);
-          MBstop(9);
+          MBanalog(my.Address, i, j, ezoValue[i][j]);
         }
         j++;        
       }
@@ -1492,7 +1484,7 @@ void PrintLoopMenu(){
 
     pos = PrintTempToLevel(pos);
 
-    PrintErrorOK(0, 0, (char*)"Read Loop started...", 0, 2);
+    PrintErrorOK(0, 0, (char*)"Read Loop started...", 0);
   }
   
 

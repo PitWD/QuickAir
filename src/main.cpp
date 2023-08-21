@@ -165,8 +165,12 @@ void loop() {
     if (!my.Boot){
       PrintLoopTimes();    
     }
+    else if (my.Boot < 3){
+      // ModBus RTU & AscII
+    }
     else{
-      // We're not in Terminal-Mode
+      // just values - send heart-beat
+      //MBanalog(my.Address, i, j, ezoValue[i][j]);
     }
 
     // Check High/Low of AVGs 

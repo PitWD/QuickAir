@@ -810,7 +810,7 @@ int8_t EzoDoNext(){
     }
 
     if (err < 0){
-        PrintErrorOK(-1, strlen(errInfo), errInfo, errCnt + 1, 2);        
+        PrintErrorOK(-1, strlen(errInfo), errInfo, errCnt + 1);        
         return -1;
     }
     else{

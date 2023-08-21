@@ -170,7 +170,11 @@ void loop() {
     }
     else{
       // just values - send heart-beat
-      //MBanalog(my.Address, i, j, ezoValue[i][j]);
+      MBstart(my.Address);
+      // iicStr[2] = type;    // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
+      iicStr[2] = 4;          // HeartBeat
+      MBaddLong(myTime, 3);
+      MBstop(7);
     }
 
     // Check High/Low of AVGs 

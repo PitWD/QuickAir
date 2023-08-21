@@ -377,9 +377,9 @@ void MBanalog(byte address, byte idProbe, byte idVal, int32_t value){
 }
 
 byte MBaddLong(int32_t value, byte pos){
-  iicStr[pos++] = (uint8_t)(value & 0xFF);
-  iicStr[pos++] = (uint8_t)((value >> 8) & 0xFF);
-  iicStr[pos++] = (uint8_t)((value >> 16) & 0xFF);
   iicStr[pos++] = (uint8_t)((value >> 24) & 0xFF);
+  iicStr[pos++] = (uint8_t)((value >> 16) & 0xFF);
+  iicStr[pos++] = (uint8_t)((value >> 8) & 0xFF);
+  iicStr[pos++] = (uint8_t)(value & 0xFF);
   return pos;
 }

@@ -359,13 +359,13 @@ void MBstop(byte pos){
 
 }
 
-void MBaction(byte address, byte type, byte actionPort, byte state){
+void MBaction(byte address, byte actionPort, byte state){
   MBstart(address);
-  iicStr[2] = type;       // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
-  iicStr[3] = 1;          // State ActionPort
-  iicStr[4] = actionPort; // ID of port
-  iicStr[5] = state;      // state of port
-  MBstop(6);
+  // iicStr[2] = type;       // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
+  iicStr[2] = 1;          // State ActionPort
+  iicStr[3] = actionPort; // ID of port
+  iicStr[4] = state;      // state of port
+  MBstop(5);
 }
 
 byte MBaddLong(int32_t value, byte pos){

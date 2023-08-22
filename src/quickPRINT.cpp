@@ -119,7 +119,7 @@ byte PrintDashLine(byte posY, byte posX, byte len){
 #endif
 
 
-void PrintErrorOK(int8_t err, byte len, char *strIN, byte ezoAddr){
+void PrintErrorOK(int8_t err, byte len, char *strIN, byte addr){
 
    // !! Bottom-Line of TUI !!
 
@@ -153,7 +153,7 @@ void PrintErrorOK(int8_t err, byte len, char *strIN, byte ezoAddr){
     EscColor(49);
 
     Serial.print(F(" @ "));
-    Serial.print(ezoAddr);
+    Serial.print(addr);
     PrintRunTime();
 
     // c++ pointer shit...
@@ -184,11 +184,12 @@ void PrintErrorOK(int8_t err, byte len, char *strIN, byte ezoAddr){
     if (err == -1){
       MBstart(my.Address);
       iicStr[2] = 3;          // Error
-      iicStr[3] = ezoAddr;    // ID of probe
+      iicStr[3] = addr;       // ID of probe
       iicStr[4] = strIN[1];   // value ID (e.g. HUM has multiple values on one probe...)
       MBstop(5);
     }    
   }
+
 }
 
 void PrintCentered(char *strIN, byte centerLen){
@@ -358,11 +359,10 @@ void MBstop(byte pos){
 
 }
 
-void MBaction(byte address, byte actionPort, byte state){
+void MBaction(byte address, byte idPort, byte state){
   MBstart(address);
-  // iicStr[2] = type;       // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
-  iicStr[2] = 1;          // State ActionPort
-  iicStr[3] = actionPort; // ID of port
+  iicStr[2] = 1;          // Command ActionPort
+  iicStr[3] = idPort;     // ID of port
   iicStr[4] = state;      // state of port
   MBstop(5);
 }

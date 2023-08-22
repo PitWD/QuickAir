@@ -800,6 +800,10 @@ void PrintPortStates(){
   if (isChanged || !portStateFirstRun){
     for (byte i = 0; i < 4; i++){
       // Low-Ports
+      byte state = (myTime < manTempTime[i]) * 2;
+      if (manual[i].State){
+        state = 1;
+      }
       
       if (!my.Boot){
         EscLocate(posOfPort[i], myLastLine);
@@ -818,7 +822,7 @@ void PrintPortStates(){
         }
         else{
           // just values
-          MBaction(my.Address, i, 1);
+          MBaction(my.Address, i, state, 1);
         }
       }
       else{
@@ -834,7 +838,7 @@ void PrintPortStates(){
         }
         else{
           // just values
-          MBaction(my.Address, i, 0);
+          MBaction(my.Address, i, state, 0);
         }
       }
       if (!my.Boot){
@@ -844,6 +848,12 @@ void PrintPortStates(){
     }
     for (byte i = 4; i < 6; i++){
       // High-Ports
+
+      byte state = (myTime < manTempTime[i]) * 2;
+      if (manual[i].State){
+        state = 1;
+      }
+
       if (!my.Boot){
         EscLocate(posOfPort[i], myLastLine);
       }
@@ -863,7 +873,7 @@ void PrintPortStates(){
         }
         else{
           // just values
-          MBaction(my.Address, i, 1);
+          MBaction(my.Address, i, state, 1);
         }
       }
       else{
@@ -877,7 +887,7 @@ void PrintPortStates(){
         }
         else{
           // just values
-          MBaction(my.Address, i, 1);
+          MBaction(my.Address, i, state, 0);
         }
       }
     }
@@ -886,6 +896,10 @@ void PrintPortStates(){
     
     for (byte i = 6; i < 9; i++){
       // Analog-Ports
+      byte state = (myTime < manTempTime[i]) * 2;
+      if (manual[i].State){
+        state = 1;
+      }
       if (!my.Boot){
         // Terminal
         EscLocate(posOfVal[i - 6], myLastLine);
@@ -904,7 +918,7 @@ void PrintPortStates(){
       }
       else{
         // just values
-        MBaction(my.Address, i, lastVal[i]);
+        MBaction(my.Address, i, state, lastVal[i]);
       }
     }
     

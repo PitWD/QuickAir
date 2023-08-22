@@ -172,7 +172,7 @@ void loop() {
       // just values - send heart-beat
       MBstart(my.Address);
       // iicStr[2] = type;    // 0 = QuickTimer, 1 = QuickWater, 2 = QuickAir
-      iicStr[2] = 4;          // HeartBeat
+      iicStr[2] = 0;          // HeartBeat
       MBaddLong(myTime, 3);
       MBstop(7);
     }
